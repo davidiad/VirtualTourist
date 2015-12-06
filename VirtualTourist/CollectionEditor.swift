@@ -9,7 +9,7 @@
 import UIKit
 import MapKit
 
-class CollectionEditor: UIViewController, MKMapViewDelegate {
+class CollectionEditor: UIViewController, MKMapViewDelegate, UICollectionViewDelegate {
 
     var coordinates : CLLocationCoordinate2D?
 

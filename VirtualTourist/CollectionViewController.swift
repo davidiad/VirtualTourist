@@ -15,6 +15,7 @@ class CollectionViewController: UICollectionViewController {
 
     let flickr = FlickrClient.sharedInstance
     let model = VirtualTouristModel.sharedInstance
+    private let barSize : CGFloat = 0.0
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -23,11 +24,36 @@ class CollectionViewController: UICollectionViewController {
         // self.clearsSelectionOnViewWillAppear = false
 
         // Register cell classes
-        //
+        
         self.collectionView!.registerClass(CollectionViewCell.self, forCellWithReuseIdentifier: reuseIdentifier)
         flickr.getImageFromFlickr()
     }
-
+    
+    override func viewWillLayoutSubviews() {
+        let frame = self.view.frame
+        self.collectionView!.frame = CGRectMake(frame.origin.x, frame.origin.y + barSize, frame.size.width, frame.size.height - barSize)
+    }
+    
+    // MARK: UICollectionViewDelegateFlowLayout
+    
+    
+    
+    func collectionView(collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAtIndexPath indexPath: NSIndexPath) -> CGSize {
+        let w = self.collectionView!.frame.size.width
+        
+        return CGSize(width: w/3.4, height: w/5) // The size of one cell
+    }
+    
+//    func collectionView(collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, referenceSizeForHeaderInSection section: Int) -> CGSize {
+//        return CGSizeMake(self.view.frame.width, 90)  // Header size
+//    }
+    
+    func collectionView(collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, insetForSectionAtIndex section: Int) -> UIEdgeInsets {
+        let frame : CGRect = self.view.frame
+        let margin  = CGFloat(5)//(frame.width - 90 * 3) / 6.0
+        return UIEdgeInsetsMake(2, margin, 2, margin) // margin between cells
+    }
+    
     // Layout the collection view
     
 //    override func viewDidLayoutSubviews() {
@@ -67,9 +93,10 @@ class CollectionViewController: UICollectionViewController {
        cell.image = UIImage(named: imageName)
         
         let imageView = UIImageView()
+        imageView.contentMode = UIViewContentMode.ScaleAspectFit
         let url = model.photoArray![indexPath.row]
         imageView.imageFromUrl(url)
-        imageView.frame = CGRect(x: 0, y: 0, width: 200, height: 200)
+        imageView.frame = CGRect(x: 0, y: 0, width: 100, height: 100)
         imageView.image = cell.image
         cell.addSubview(imageView)
         cell.backgroundColor = UIColor.greenColor()

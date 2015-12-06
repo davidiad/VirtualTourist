@@ -115,13 +115,13 @@
                         </cells>
                         <connections>
                             <outlet property="dataSource" destination="V89-CL-Ahw" id="zCJ-pP-jwH"/>
-                            <outlet property="delegate" destination="V89-CL-Ahw" id="g24-Kt-jvS"/>
+                            <outlet property="delegate" destination="V89-CL-Ahw" id="POo-ux-ELT"/>
                         </connections>
                     </collectionView>
                 </collectionViewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="Ybj-gG-YhF" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="3246" y="-61.75"/>
+            <point key="canvasLocation" x="3051" y="-129.25"/>
         </scene>
         <!--Navigation Controller-->
         <scene sceneID="NOb-fG-jIK">
