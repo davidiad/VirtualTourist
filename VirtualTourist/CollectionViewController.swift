@@ -14,6 +14,7 @@ let sectionInsets = UIEdgeInsets(top: 1.0, left: 1.0, bottom: 1.0, right: 1.0)
 class CollectionViewController: UICollectionViewController {
 
     let flickr = FlickrClient.sharedInstance
+    let model = VirtualTouristModel.sharedInstance
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -30,8 +31,8 @@ class CollectionViewController: UICollectionViewController {
     // Layout the collection view
     
 //    override func viewDidLayoutSubviews() {
-//        super.viewDidLayoutSubviews()
-//    
+//         super.viewDidLayoutSubviews()
+//    print("layoutSubviews")
 //         //Lay out the collection view so that cells take up 1/3 of the width,
 //        // with no space in between.
 //        let layout : UICollectionViewFlowLayout = UICollectionViewFlowLayout()
@@ -39,8 +40,11 @@ class CollectionViewController: UICollectionViewController {
 //        layout.minimumLineSpacing = 0
 //        layout.minimumInteritemSpacing = 0
 //        
-//        let width = floor(self.collectionView!.frame.size.width/3)
+//        let width = floor(self.collectionView!.frame.size.width/4)
 //        layout.itemSize = CGSize(width: width, height: width)
+//        for sub in collectionView!.subviews {
+//            print(sub.tag)
+//        }
 //        collectionView!.collectionViewLayout = layout
 //    }
 
@@ -52,21 +56,22 @@ class CollectionViewController: UICollectionViewController {
     }
 
     override func collectionView(collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        // #warning Incomplete implementation, return the number of items
-
-        return 7
+        return (model.photoArray?.count)!
     }
 
     override func collectionView(collectionView: UICollectionView, cellForItemAtIndexPath indexPath: NSIndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCellWithReuseIdentifier(reuseIdentifier, forIndexPath: indexPath) as! CollectionViewCell
     
         // Configure the cell
-//        let imageName = "chunky_puppy.jpg"
-//        cell.image = UIImage(named: imageName)
-//        let imageView = UIImageView()//(image: image!)
-//        //imageView.frame = CGRect(x: 0, y: 0, width: 200, height: 200)
-//        imageView.image = cell.image
-//        cell.cellView.addSubview(imageView)
+       let imageName = "puppy"
+       cell.image = UIImage(named: imageName)
+        
+        let imageView = UIImageView()
+        let url = model.photoArray![indexPath.row]
+        imageView.imageFromUrl(url)
+        imageView.frame = CGRect(x: 0, y: 0, width: 200, height: 200)
+        imageView.image = cell.image
+        cell.addSubview(imageView)
         cell.backgroundColor = UIColor.greenColor()
         return cell
     }
@@ -102,4 +107,18 @@ class CollectionViewController: UICollectionViewController {
     }
     */
 
+}
+
+extension UIImageView {
+    public func imageFromUrl(urlString: String) {
+        if let url = NSURL(string: urlString) {
+            let request = NSURLRequest(URL: url)
+            NSURLConnection.sendAsynchronousRequest(request, queue: NSOperationQueue.mainQueue()) {
+                (response: NSURLResponse?, data: NSData?, error: NSError?) -> Void in
+                if let imageData = data as NSData? {
+                    self.image = UIImage(data: imageData)
+                }
+            }
+        }
+    }
 }

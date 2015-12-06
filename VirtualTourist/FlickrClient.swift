@@ -11,6 +11,7 @@ import UIKit
 /* 1 - Define constants */
 let BASE_URL = "https://api.flickr.com/services/rest/"
 let METHOD_NAME = "flickr.galleries.getPhotos"
+//let METHOD_NAME = "flickr.photos.geo.photosForLocation"
 let API_KEY = "461697eded75e4c63f0a952aa1761c43"
 let GALLERY_ID = "5704-72157622566655097"
 let EXTRAS = "url_m"
@@ -20,10 +21,13 @@ let NO_JSON_CALLBACK = "1"
 
 class FlickrClient: NSObject {
     
+    //TODO:- get the pictures based on the pin coordinates
+    
     static let sharedInstance = FlickrClient()
+    let model = VirtualTouristModel.sharedInstance
     
     func getImageFromFlickr() {
-        
+
         /* 2 - API method arguments */
         let methodArguments = [
             "method": METHOD_NAME,
@@ -34,9 +38,23 @@ class FlickrClient: NSObject {
             "nojsoncallback": NO_JSON_CALLBACK
         ]
         
+//        /* 2 - API method arguments */
+//        let methodArguments = [
+//            "method": METHOD_NAME,
+//            "api_key": API_KEY,
+//            "lat": 36.5,
+//            "lon":  -122,
+//            "accuracy": 12,
+//            "extras": EXTRAS,
+//            "format": DATA_FORMAT,
+//            "nojsoncallback": NO_JSON_CALLBACK
+//        ]
+        
         /* 3 - Initialize session and url */
         let session = NSURLSession.sharedSession()
         let urlString = BASE_URL + escapedParameters(methodArguments)
+
+//        let urlString = BASE_URL + escapedParameters(methodArguments as! [String : AnyObject])
         let url = NSURL(string: urlString)!
         let request = NSURLRequest(URL: url)
         
@@ -99,6 +117,7 @@ class FlickrClient: NSObject {
                 return
             }
             
+            
             /* GUARD: Are the "photos" and "photo" keys in our result? */
             guard let photosDictionary = parsedResult["photos"] as? NSDictionary,
                 photoArray = photosDictionary["photo"] as? [[String: AnyObject]] else {
@@ -107,6 +126,21 @@ class FlickrClient: NSObject {
                     })
                     print("Cannot find keys 'photos' and 'photo' in \(parsedResult)")
                     return
+            }
+            
+            // Put all of the url strings into an array, and pass that into the data model to store
+            self.model.photoArray?.removeAll()
+            
+            for photo in photoArray {
+                guard let imageUrlString = photo["url_m"] as? String else {
+                    dispatch_async(dispatch_get_main_queue(), {
+                        //
+                    })
+                    // handle error
+                    print("Cannot find key 'url_m' in \(photo)")
+                    return
+                }
+                self.model.photoArray?.append(imageUrlString)
             }
             
             /* 7 - Generate a random number, then select a random photo */
