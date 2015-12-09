@@ -7,9 +7,12 @@
 //
 
 import UIKit
+import MapKit
 
 let reuseIdentifier = "Cell"
-let sectionInsets = UIEdgeInsets(top: 1.0, left: 1.0, bottom: 1.0, right: 1.0)
+//let sectionInsets = UIEdgeInsets(top: 1.0, left: 1.0, bottom: 1.0, right: 1.0)
+var csize: CGSize = CGSizeMake(100, 100)
+var coordinates : CLLocationCoordinate2D?
 
 class CollectionViewController: UICollectionViewController {
 
@@ -26,7 +29,13 @@ class CollectionViewController: UICollectionViewController {
         // Register cell classes
         
         self.collectionView!.registerClass(CollectionViewCell.self, forCellWithReuseIdentifier: reuseIdentifier)
+        //TODO: add coordinate parameters to pass in
         flickr.getImageFromFlickr()
+//        if coordinates != nil {
+//            flickr.getFlickrImagesFromCoordinates(coordinates!)
+//        } else {
+//            print("no coordinates passed to CollectionViewController")
+//        }
     }
     
     override func viewWillLayoutSubviews() {
@@ -41,7 +50,8 @@ class CollectionViewController: UICollectionViewController {
     func collectionView(collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAtIndexPath indexPath: NSIndexPath) -> CGSize {
         let w = self.collectionView!.frame.size.width
         
-        return CGSize(width: w/3.4, height: w/5) // The size of one cell
+        csize = CGSize(width: (w - 26)/3, height: (w - 26)/3)
+        return csize // The size of one cell
     }
     
 //    func collectionView(collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, referenceSizeForHeaderInSection section: Int) -> CGSize {
@@ -93,10 +103,11 @@ class CollectionViewController: UICollectionViewController {
        cell.image = UIImage(named: imageName)
         
         let imageView = UIImageView()
-        imageView.contentMode = UIViewContentMode.ScaleAspectFit
+        imageView.contentMode = UIViewContentMode.ScaleToFill
         let url = model.photoArray![indexPath.row]
         imageView.imageFromUrl(url)
-        imageView.frame = CGRect(x: 0, y: 0, width: 100, height: 100)
+        //imageView.frame = CGRect(x: 0, y: 0, width: 100, height: 100)
+        imageView.frame = CGRect(x: 2, y: 2, width: csize.width - 4, height: csize.height - 4)
         imageView.image = cell.image
         cell.addSubview(imageView)
         cell.backgroundColor = UIColor.greenColor()
