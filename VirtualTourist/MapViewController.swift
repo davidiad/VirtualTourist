@@ -223,16 +223,13 @@ class MapViewController: UIViewController, MKMapViewDelegate {
     
     override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
         let pin = sender as! MKAnnotation
-        print("about to segue")
         if let collectionEditor = segue.destinationViewController as? CollectionEditor {
 //            let coordinatesText = String(pin.coordinate.latitude) + ", " + String(pin.coordinate.longitude)
 //            collectionEditor.coordinatesText = coordinatesText
 
             collectionEditor.coordinates = pin.coordinate
         } else {
-            print("segue fail")
+            print("segue to CollectionEditor fail")
         }
-        
-        
     }
 }

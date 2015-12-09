@@ -30,7 +30,7 @@ class CollectionEditor: UIViewController, MKMapViewDelegate, UICollectionViewDel
             mapView.region = region
             placePin()
         } else {
-            print("no coords")
+            print("no coords in CollectionEditor")
         }
         
     }
@@ -65,14 +65,16 @@ class CollectionEditor: UIViewController, MKMapViewDelegate, UICollectionViewDel
         return pinView
     }
     
-    /*
+    
     // MARK: - Navigation
 
     // In a storyboard-based application, you will often want to do a little preparation before navigation
     override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
         // Get the new view controller using segue.destinationViewController.
-        // Pass the selected object to the new view controller.
+        if let collectionViewController = segue.destinationViewController as? CollectionViewController {
+            collectionViewController.coordinates = coordinates
+        } else {
+            print("segue to CollectionViewController fail")
+        }
     }
-    */
-
 }

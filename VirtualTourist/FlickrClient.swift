@@ -44,10 +44,11 @@ class FlickrClient: NSObject {
     static let sharedInstance = FlickrClient()
     let model = VirtualTouristModel.sharedInstance
     
-    func getFlickrImagesFromCoordinates(coordinates: CLLocationCoordinate2D) {
+    func getFlickrImagesForCoordinates(coordinates: CLLocationCoordinate2D) {
         
-        lat = "\"" + String(coordinates.latitude) + "\""
-        lon = "\"" + String(coordinates.longitude) + "\""
+        lat = String(coordinates.latitude)
+        lon = String(coordinates.longitude)
+        //lon = "\"" + String(coordinates.longitude) + "\""
         
         /* 2 - API method arguments */
         let methodArguments = [
@@ -155,31 +156,31 @@ class FlickrClient: NSObject {
                 self.model.photoArray?.append(imageUrlString)
             }
             
-            /* 7 - Generate a random number, then select a random photo */
-            let randomPhotoIndex = Int(arc4random_uniform(UInt32(photoArray.count)))
-            let photoDictionary = photoArray[randomPhotoIndex] as [String: AnyObject]
-            let photoTitle = photoDictionary["title"] as? String /* non-fatal */
-            
-            /* GUARD: Does our photo have a key for 'url_m'? */
-            guard let imageUrlString = photoDictionary["url_m"] as? String else {
-                dispatch_async(dispatch_get_main_queue(), {
-                    self.setUIEnabled(enabled: true)
-                })
-                print("Cannot find key 'url_m' in \(photoDictionary)")
-                return
-            }
-            
-            /* 8 - If an image exists at the url, set the image and title */
-            let imageURL = NSURL(string: imageUrlString)
-            if let imageData = NSData(contentsOfURL: imageURL!) {
-                dispatch_async(dispatch_get_main_queue(), {
-                    //                    self.setUIEnabled(enabled: true)
-                    //                    self.photoImageView.image = UIImage(data: imageData)
-                    //                    self.photoTitle.text = photoTitle ?? "(Untitled)"
-                })
-            } else {
-                print("Image does not exist at \(imageURL)")
-            }
+//            /* 7 - Generate a random number, then select a random photo */
+//            let randomPhotoIndex = Int(arc4random_uniform(UInt32(photoArray.count)))
+//            let photoDictionary = photoArray[randomPhotoIndex] as [String: AnyObject]
+//            let photoTitle = photoDictionary["title"] as? String /* non-fatal */
+//            
+//            /* GUARD: Does our photo have a key for 'url_m'? */
+//            guard let imageUrlString = photoDictionary["url_m"] as? String else {
+//                dispatch_async(dispatch_get_main_queue(), {
+//                    self.setUIEnabled(enabled: true)
+//                })
+//                print("Cannot find key 'url_m' in \(photoDictionary)")
+//                return
+//            }
+//            
+//            /* 8 - If an image exists at the url, set the image and title */
+//            let imageURL = NSURL(string: imageUrlString)
+//            if let imageData = NSData(contentsOfURL: imageURL!) {
+//                dispatch_async(dispatch_get_main_queue(), {
+//                    //                    self.setUIEnabled(enabled: true)
+//                    //                    self.photoImageView.image = UIImage(data: imageData)
+//                    //                    self.photoTitle.text = photoTitle ?? "(Untitled)"
+//                })
+//            } else {
+//                print("Image does not exist at \(imageURL)")
+//            }
         }
         
         /* 9 - Resume (execute) the task */

@@ -12,12 +12,12 @@ import MapKit
 let reuseIdentifier = "Cell"
 //let sectionInsets = UIEdgeInsets(top: 1.0, left: 1.0, bottom: 1.0, right: 1.0)
 var csize: CGSize = CGSizeMake(100, 100)
-var coordinates : CLLocationCoordinate2D?
 
 class CollectionViewController: UICollectionViewController {
 
     let flickr = FlickrClient.sharedInstance
     let model = VirtualTouristModel.sharedInstance
+    var coordinates : CLLocationCoordinate2D?
     private let barSize : CGFloat = 0.0
     
     override func viewDidLoad() {
@@ -30,12 +30,12 @@ class CollectionViewController: UICollectionViewController {
         
         self.collectionView!.registerClass(CollectionViewCell.self, forCellWithReuseIdentifier: reuseIdentifier)
         //TODO: add coordinate parameters to pass in
-        flickr.getImageFromFlickr()
-//        if coordinates != nil {
-//            flickr.getFlickrImagesFromCoordinates(coordinates!)
-//        } else {
-//            print("no coordinates passed to CollectionViewController")
-//        }
+        //flickr.getImageFromFlickr()
+        if coordinates != nil {
+            flickr.getFlickrImagesForCoordinates(coordinates!)
+        } else {
+            print("no coordinates passed to CollectionViewController")
+        }
     }
     
     override func viewWillLayoutSubviews() {
