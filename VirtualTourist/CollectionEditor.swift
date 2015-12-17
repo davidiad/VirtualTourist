@@ -12,6 +12,7 @@ import MapKit
 class CollectionEditor: UIViewController, MKMapViewDelegate, UICollectionViewDelegate {
 
     var coordinates : CLLocationCoordinate2D?
+    var currentPin: Pin?
 
 
     @IBOutlet weak var mapView: MKMapView!

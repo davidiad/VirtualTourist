@@ -18,6 +18,7 @@ class CollectionViewController: UICollectionViewController {
     let flickr = FlickrClient.sharedInstance
     let model = VirtualTouristModel.sharedInstance
     var coordinates : CLLocationCoordinate2D?
+    var currentPin: Pin?
     private let barSize : CGFloat = 0.0
     
     override func viewDidLoad() {

@@ -8,6 +8,7 @@
 
 import UIKit
 import MapKit
+import CoreData
 
 /**
 * This view controller demonstrates the objects involved in displaying pins on a map.
@@ -23,22 +24,53 @@ import MapKit
 
 class MapViewController: UIViewController, MKMapViewDelegate {
     
+    lazy var sharedContext = {
+        CoreDataStackManager.sharedInstance().managedObjectContext
+    }()
+    
+    var currentPin: Pin?
+    
     @IBOutlet weak var map: MKMapView!
     
     override func viewDidLoad() {
         //setupNav()
 //        NSNotificationCenter.defaultCenter().addObserver(self, selector: "readAndDisplayAnnotations", name: refreshNotificationKey, object: nil)
 //        navigationController?.title = "On The Map"
+        //TODO: read in location and zoom from persisted MapViewInfo object
         map.delegate = self
         let longpress = UILongPressGestureRecognizer(target: self, action: "addAnnotation:")
         longpress.minimumPressDuration = 0.7
         map.addGestureRecognizer(longpress)
+    }
+    
+    override func viewWillAppear(animated: Bool) {
+        let mapInfo = fetchMapInfo()
+        //let mapInfo = NSEntityDescription.insertNewObjectForEntityForName("MapViewInfo", inManagedObjectContext: sharedContext) as! MapViewInfo
+        //        mapInfo.lat = map.centerCoordinate.latitude
+        //        mapInfo.lon = map.centerCoordinate.longitude
+        //        mapInfo.latDelta = map.region.span.latitudeDelta
+        //        mapInfo.lonDelta = map.region.span.longitudeDelta
+        map.centerCoordinate.latitude = Double(mapInfo.lat!)
+        map.centerCoordinate.longitude = Double(mapInfo.lon!)
+        let mapSpan = MKCoordinateSpanMake(Double(mapInfo.latDelta!), Double(mapInfo.lonDelta!))
+        map.region = MKCoordinateRegionMake(map.centerCoordinate, mapSpan)
         
+        print("VWA")
+        print(Double(mapInfo.lat!))
+        print(Double(mapInfo.lon!))
+        //let mapRegion = MKMapSizeMake(Double(mapInfo.lonDelta!), Double(mapInfo.latDelta!))
+        //CoreDataStackManager.sharedInstance().saveContext()
+        
+        let pinArray = fetchPins()
+        displayPins(pinArray)
     }
     
     override func viewDidAppear(animated: Bool) {
         //readAndDisplayAnnotations()
-    }
+    }//        var sharedContext: NSManagedObjectContext {
+//            return CoreDataStackManager.sharedInstance().managedObjectContext
+//        }
+
     
 //    func mapView(mapView: MKMapView, viewForAnnotation annotation: MKAnnotation) -> MKAnnotationView? {
 //        if (annotation is MKUserLocation) {
@@ -73,12 +105,52 @@ class MapViewController: UIViewController, MKMapViewDelegate {
             map.addAnnotation(annotation)
             print(newCoordinates.latitude)
             print(newCoordinates.longitude)
+            
+            // Add a new Pin object to data store
+            // First, create a dictionary to init the Pin
+            let pinDictionary = [
+                "lat": NSNumber(double: newCoordinates.latitude),
+                "lon": NSNumber(double: newCoordinates.longitude)
+            ]
+            
+            currentPin = Pin(dictionary: pinDictionary, context: sharedContext)
+            CoreDataStackManager.sharedInstance().saveContext()
+            print(currentPin)
+            
         }
 //        if (annotation.state == UIGestureRecognizerState.Ended)
 //        {
 //            [self.mapView removeGestureRecognizer:sender];
 //        }
     }
+    
+    func displayPins(pinArray: [Pin]) {
+            
+            // We will create an MKPointAnnotation for each dictionary in "locations". The
+            // point annotations will be stored in this array, and then provided to the map view.
+            var annotations = [MKPointAnnotation]()
+            
+            for pin in pinArray {
+                
+                let lat = CLLocationDegrees(pin.lat!)
+                let lon = CLLocationDegrees(pin.lon!)
+                
+                // The lat and long are used to create a CLLocationCoordinates2D instance.
+                let coordinate = CLLocationCoordinate2D(latitude: lat, longitude: lon)
+                let name = String(lat) + ", " + String(lon)
+                
+                // Here we create the annotation and set its coordiate, title, and subtitle properties
+                let annotation = MKPointAnnotation()
+                annotation.coordinate = coordinate
+                annotation.title =  name
+                // Finally we place the annotation in an array of annotations.
+                annotations.append(annotation)
+            }
+            
+            // When the array is complete, we add the annotations to the map.
+            map.addAnnotations(annotations)
+    }
+
     
 //    func tapPin(gestureRecognizer: UITapGestureRecognizer) {
 //        let pinView = gestureRecognizer.view as! MKAnnotation
@@ -210,14 +282,22 @@ class MapViewController: UIViewController, MKMapViewDelegate {
 //        }
 //    }
     
+    func mapView(mapView: MKMapView, regionDidChangeAnimated animated: Bool) {
+        print("regionChanged")
+        let info = makeMapDictionary()
+        print(info)
+        saveMapInfo()
+
+        //TODO: save this info into core data, replacing the existing object if there is one
+        CoreDataStackManager.sharedInstance().saveContext()
+    }
+    
     // This delegate method is implemented to respond to taps. It opens the system browser
     // to the URL specified in the annotationViews subtitle property.
     func mapView(mapView: MKMapView, annotationView: MKAnnotationView, calloutAccessoryControlTapped control: UIControl) {
-//        if control == annotationView.rightCalloutAccessoryView {
-//            let app = UIApplication.sharedApplication()
-//            app.openURL(NSURL(string: (annotationView.annotation!.subtitle)!!)!)
-//        }
-        //let coordinates = annotationView.annotation?.coordinate
+        
+        //TODO: Save MapViewInfo object to core data
+        saveMapInfo()
         performSegueWithIdentifier("fromMap", sender: annotationView.annotation)
     }
     
@@ -228,8 +308,105 @@ class MapViewController: UIViewController, MKMapViewDelegate {
 //            collectionEditor.coordinatesText = coordinatesText
 
             collectionEditor.coordinates = pin.coordinate
+            collectionEditor.currentPin = currentPin
         } else {
             print("segue to CollectionEditor fail")
         }
     }
+    
+    //MARK:-Core Data Functions
+    
+    func fetchPins() -> [Pin] {
+        var pinArray = [Pin]()
+        let fetchRequest = NSFetchRequest(entityName: "Pin")
+        do {
+            pinArray = try sharedContext.executeFetchRequest(fetchRequest) as! [Pin]
+            print("Pins: \(pinArray.count)")
+        } catch let error as NSError {
+            print("Error in fetchPins request: \(error)")
+        }
+        return pinArray
+    }
+    
+    func fetchMapInfo() -> MapViewInfo {
+        let fetchRequest = NSFetchRequest(entityName: "MapViewInfo")
+        do {
+            let infoArray = try sharedContext.executeFetchRequest(fetchRequest) as! [MapViewInfo]
+            if infoArray.count > 0 {
+                return infoArray[0]
+            } else {
+                print("No objects in fetchMapInfo request")
+                NSEntityDescription.insertNewObjectForEntityForName("MapViewInfo", inManagedObjectContext: sharedContext) as! MapViewInfo
+                let defaultInfo = makeMapDictionary()
+                return MapViewInfo(dictionary: defaultInfo, context: sharedContext)
+            }
+        } catch let error as NSError {
+            print("Error in fetchMapInfo(): \(error)")
+            let defaultInfo = makeMapDictionary()
+            return MapViewInfo(dictionary: defaultInfo, context: sharedContext)
+        }
+    }
+    
+    func saveMapInfo() {
+        let info = makeMapDictionary()
+        print("in saveMapInfo")
+        print(info)
+        deleteMapInfo()
+        _ = NSFetchRequest(entityName: "MapViewInfo")
+//        do {
+            //var infoArray = try sharedContext.executeFetchRequest(fetchRequest) as! [MapViewInfo]
+            //if infoArray.count == 0 {
+                //print("count was 0")
+                let mapInfo = NSEntityDescription.insertNewObjectForEntityForName("MapViewInfo", inManagedObjectContext: sharedContext) as! MapViewInfo
+                //NSEntityDescription.insertNewObjectForEntityForName("MapViewInfo", inManagedObjectContext: sharedContext) as! MapViewInfo
+                mapInfo.lat = NSNumber(double: map.centerCoordinate.latitude)
+                mapInfo.lon = NSNumber(double: map.centerCoordinate.longitude)
+                mapInfo.latDelta = NSNumber(double: map.region.span.latitudeDelta)
+                mapInfo.lonDelta = NSNumber(double: map.region.span.longitudeDelta)
+                mapInfo.zoom = NSNumber(double: 1.0)
+//            } else {
+//                print("Non-zero count: \(infoArray.count)")
+//            }
+            //infoArray[0] = MapViewInfo(dictionary: info, context: sharedContext)
+            CoreDataStackManager.sharedInstance().saveContext()
+        
+//        } catch let error as NSError {
+//            print("Error in saveMapInfo(): \(error)")
+//        }
+    }
+    
+    func deleteMapInfo() {
+        let fetchRequest = NSFetchRequest(entityName: "MapViewInfo")
+        let deleteRequest = NSBatchDeleteRequest(fetchRequest: fetchRequest)
+    
+        do {
+            try sharedContext.executeRequest(deleteRequest)
+        } catch let error as NSError {
+            print("Error in deleteMapInfo: \(error)")
+        }
+    }
+    
+    // make dict for map info values
+    func makeMapDictionary() -> [String : AnyObject] {
+        
+        let mapDictionary = [
+            "lat": NSNumber(double: map.centerCoordinate.latitude),
+            "lon": NSNumber(double: map.centerCoordinate.longitude),
+            "latDelta": NSNumber(double: map.region.span.latitudeDelta),
+            "lonDelta": NSNumber(double: map.region.span.longitudeDelta),
+            "zoom": NSNumber(double: 1.0)
+        ]
+        
+        return mapDictionary
+    }
+    
+//    func fetchAllActors() -> [Person] {
+//        let fetchRequest = NSFetchRequest(entityName: "Person")
+//        do {
+//            return try sharedContext.executeFetchRequest(fetchRequest) as! [Person]
+//        } catch let error as NSError {
+//            print("Error in fetchAllActors(): \(error)")
+//            return [Person]()
+//        }
+//    }
 }
