@@ -28,6 +28,9 @@ class MapViewController: UIViewController, MKMapViewDelegate {
         CoreDataStackManager.sharedInstance().managedObjectContext
     }()
     
+    let model = VirtualTouristModel.sharedInstance
+    let flickr = FlickrClient.sharedInstance
+    
     var currentPin: Pin?
     
     @IBOutlet weak var map: MKMapView!
@@ -115,8 +118,6 @@ class MapViewController: UIViewController, MKMapViewDelegate {
             
             currentPin = Pin(dictionary: pinDictionary, context: sharedContext)
             CoreDataStackManager.sharedInstance().saveContext()
-            print(currentPin)
-            
         }
 //        if (annotation.state == UIGestureRecognizerState.Ended)
 //        {
@@ -298,7 +299,13 @@ class MapViewController: UIViewController, MKMapViewDelegate {
         
         //TODO: Save MapViewInfo object to core data
         saveMapInfo()
-        performSegueWithIdentifier("fromMap", sender: annotationView.annotation)
+        model.photoArray?.removeAll() // ensure that we don't see images from a previous pin by deleting them
+        flickr.getFlickrImagesForCoordinates((annotationView.annotation?.coordinate)!) { success, error in
+            if success {
+                print("Flickr Success")
+            }
+        }
+        self.performSegueWithIdentifier("fromMap", sender: annotationView.annotation)
     }
     
     override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {

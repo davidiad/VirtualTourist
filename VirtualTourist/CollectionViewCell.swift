@@ -10,9 +10,24 @@ import UIKit
 
 class CollectionViewCell: UICollectionViewCell {
     
+    
     var image: UIImage?
     
-    @IBOutlet weak var cellView: UIView!
+    @IBOutlet weak var cellView: UIImageView!
+    
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+//        if self.cellView != nil {
+//            cellView = UIImageView(frame: CGRect(x: 0, y: 0, width: frame.size.width, height: frame.size.height))
+
+    }
+    
+    required init?(coder: NSCoder) {
+        super.init(coder: coder)
+        
+    }
+    
+    
     
     var color: UIColor {
         set {
@@ -23,4 +38,6 @@ class CollectionViewCell: UICollectionViewCell {
             return self.cellView.backgroundColor ?? UIColor.whiteColor()
         }
     }
+
+
 }

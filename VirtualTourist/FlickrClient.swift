@@ -28,27 +28,23 @@ let METHOD_NAME = "flickr.photos.search"
 let API_KEY = "461697eded75e4c63f0a952aa1761c43"
 //let GALLERY_ID = "5704-72157622566655097"
 let EXTRAS = "url_m"
+//TODO: if no photos are found, reduce this accuracy number and try again
 let ACCURACY = "16"
 let MEDIA = "photos"
 let DATA_FORMAT = "json"
 let NO_JSON_CALLBACK = "1"
-
-var lat = "38.9047"
-var lon = "77.0164"
-
+let PER_PAGE = "21"
+let PAGE = "1" //TODO: randomize this value to get different sets of photos
 
 class FlickrClient: NSObject {
     
-    //TODO:- get the pictures based on the pin coordinates
-    
-    static let sharedInstance = FlickrClient()
+    static let sharedInstance = FlickrClient() // makes this class a singleton
     let model = VirtualTouristModel.sharedInstance
     
-    func getFlickrImagesForCoordinates(coordinates: CLLocationCoordinate2D) {
+    func getFlickrImagesForCoordinates(coordinates: CLLocationCoordinate2D, completion: (success: Bool, error: NSError?) -> Void) {
         
-        lat = String(coordinates.latitude)
-        lon = String(coordinates.longitude)
-        //lon = "\"" + String(coordinates.longitude) + "\""
+        let lat = String(coordinates.latitude)
+        let lon = String(coordinates.longitude)
         
         /* 2 - API method arguments */
         let methodArguments = [
@@ -60,7 +56,9 @@ class FlickrClient: NSObject {
             "lon": lon,
             "extras": EXTRAS,
             "format": DATA_FORMAT,
-            "nojsoncallback": NO_JSON_CALLBACK
+            "nojsoncallback": NO_JSON_CALLBACK,
+            "per_page": PER_PAGE,
+            "page": PAGE
         ]
         
         /* 3 - Initialize session and url */
@@ -155,6 +153,7 @@ class FlickrClient: NSObject {
                 }
                 self.model.photoArray?.append(imageUrlString)
             }
+            completion(success: true, error: nil)
             
 //            /* 7 - Generate a random number, then select a random photo */
 //            let randomPhotoIndex = Int(arc4random_uniform(UInt32(photoArray.count)))
@@ -186,8 +185,9 @@ class FlickrClient: NSObject {
         /* 9 - Resume (execute) the task */
         task.resume()
     }
-    
+    /*
     func getImageFromFlickr() {
+        
 /* from Sleeping in the Library
         /* 2 - API method arguments */
         let methodArguments = [
@@ -347,7 +347,7 @@ class FlickrClient: NSObject {
         /* 9 - Resume (execute) the task */
         task.resume()
     }
-    
+    */
     // Configure UI
     
     func setUIEnabled(enabled enabled: Bool) {

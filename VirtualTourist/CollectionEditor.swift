@@ -11,6 +11,8 @@ import MapKit
 
 class CollectionEditor: UIViewController, MKMapViewDelegate, UICollectionViewDelegate {
 
+    let flickr = FlickrClient.sharedInstance
+    
     var coordinates : CLLocationCoordinate2D?
     var currentPin: Pin?
 
@@ -30,6 +32,7 @@ class CollectionEditor: UIViewController, MKMapViewDelegate, UICollectionViewDel
             let region = MKCoordinateRegionMake(coordinates!, span)
             mapView.region = region
             placePin()
+
         } else {
             print("no coords in CollectionEditor")
         }
@@ -68,14 +71,21 @@ class CollectionEditor: UIViewController, MKMapViewDelegate, UICollectionViewDel
     
     
     // MARK: - Navigation
-
+    
     // In a storyboard-based application, you will often want to do a little preparation before navigation
     override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
         // Get the new view controller using segue.destinationViewController.
-        if let collectionViewController = segue.destinationViewController as? CollectionViewController {
-            collectionViewController.coordinates = coordinates
-        } else {
-            print("segue to CollectionViewController fail")
-        }
-    }
+//        flickr.getFlickrImagesForCoordinates(coordinates!) { success, error in
+//            if success {
+//                print("Flickr Success")
+        
+                if let collectionViewController = segue.destinationViewController as? CollectionViewController {
+                    collectionViewController.coordinates = self.coordinates
+                    collectionViewController.currentPin = self.currentPin
+                } else {
+                    print("segue to CollectionViewController fail")
+                }
+            }
+//        }
+//    }
 }

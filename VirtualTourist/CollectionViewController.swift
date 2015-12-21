@@ -15,7 +15,7 @@ var csize: CGSize = CGSizeMake(100, 100)
 
 class CollectionViewController: UICollectionViewController {
 
-    let flickr = FlickrClient.sharedInstance
+
     let model = VirtualTouristModel.sharedInstance
     var coordinates : CLLocationCoordinate2D?
     var currentPin: Pin?
@@ -29,14 +29,10 @@ class CollectionViewController: UICollectionViewController {
 
         // Register cell classes
         
-        self.collectionView!.registerClass(CollectionViewCell.self, forCellWithReuseIdentifier: reuseIdentifier)
+        //self.collectionView!.registerClass(CollectionViewCell.self, forCellWithReuseIdentifier: reuseIdentifier)
         //TODO: add coordinate parameters to pass in
         //flickr.getImageFromFlickr()
-        if coordinates != nil {
-            flickr.getFlickrImagesForCoordinates(coordinates!)
-        } else {
-            print("no coordinates passed to CollectionViewController")
-        }
+
     }
     
     override func viewWillLayoutSubviews() {
@@ -93,25 +89,35 @@ class CollectionViewController: UICollectionViewController {
     }
 
     override func collectionView(collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return (model.photoArray?.count)!
+        if model.photoArray?.count > 0 {
+            return (model.photoArray?.count)!
+        } else {
+            print("no photos here yet")
+            return 21 // if there are no photos ready, still, display the collection view with 21 empty cells
+        }
     }
 
     override func collectionView(collectionView: UICollectionView, cellForItemAtIndexPath indexPath: NSIndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCellWithReuseIdentifier(reuseIdentifier, forIndexPath: indexPath) as! CollectionViewCell
     
         // Configure the cell
-       let imageName = "puppy"
-       cell.image = UIImage(named: imageName)
         
         let imageView = UIImageView()
         imageView.contentMode = UIViewContentMode.ScaleToFill
-        let url = model.photoArray![indexPath.row]
-        imageView.imageFromUrl(url)
-        //imageView.frame = CGRect(x: 0, y: 0, width: 100, height: 100)
-        imageView.frame = CGRect(x: 2, y: 2, width: csize.width - 4, height: csize.height - 4)
-        imageView.image = cell.image
+        if model.photoArray?.count > 0 {
+            print("\(model.photoArray!.count) photos")
+            //TODO: appear to crash (array out of index) when < 21 photos found
+            if indexPath.row < model.photoArray?.count {
+                let url = model.photoArray![indexPath.row]
+                imageView.imageFromUrl(url)
+                //imageView.frame = CGRect(x: 0, y: 0, width: 100, height: 100)
+                imageView.frame = CGRect(x: 2, y: 2, width: csize.width - 4, height: csize.height - 4)
+                imageView.image = cell.image
+            }
+            
+        }
         cell.addSubview(imageView)
-        cell.backgroundColor = UIColor.greenColor()
+        cell.backgroundColor = UIColor.redColor()
         return cell
     }
 
