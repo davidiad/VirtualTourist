@@ -295,17 +295,29 @@ class MapViewController: UIViewController, MKMapViewDelegate {
     
     // This delegate method is implemented to respond to taps. It opens the system browser
     // to the URL specified in the annotationViews subtitle property.
-    func mapView(mapView: MKMapView, annotationView: MKAnnotationView, calloutAccessoryControlTapped control: UIControl) {
-        
-        //TODO: Save MapViewInfo object to core data
+//    func mapView(mapView: MKMapView, annotationView: MKAnnotationView, calloutAccessoryControlTapped control: UIControl) {
+//        
+//        //TODO: Save MapViewInfo object to core data
+//        saveMapInfo()
+//        model.photoArray?.removeAll() // ensure that we don't see images from a previous pin by deleting them
+//        flickr.getFlickrImagesForCoordinates((annotationView.annotation?.coordinate)!) { success, error in
+//            if success {
+//                print("Flickr Success")
+//            }
+//        }
+//        self.performSegueWithIdentifier("fromMap", sender: annotationView.annotation)
+//    }
+    
+    // Use this "select" function to tap the pin
+    func mapView(mapView: MKMapView, didSelectAnnotationView view: MKAnnotationView) {
         saveMapInfo()
         model.photoArray?.removeAll() // ensure that we don't see images from a previous pin by deleting them
-        flickr.getFlickrImagesForCoordinates((annotationView.annotation?.coordinate)!) { success, error in
+        flickr.getFlickrImagesForCoordinates((view.annotation?.coordinate)!) { success, error in
             if success {
                 print("Flickr Success")
             }
         }
-        self.performSegueWithIdentifier("fromMap", sender: annotationView.annotation)
+        self.performSegueWithIdentifier("fromMap", sender: view.annotation)
     }
     
     override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
