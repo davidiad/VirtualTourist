@@ -48,55 +48,14 @@ class MapViewController: UIViewController, MKMapViewDelegate {
     
     override func viewWillAppear(animated: Bool) {
         let mapInfo = fetchMapInfo()
-        //let mapInfo = NSEntityDescription.insertNewObjectForEntityForName("MapViewInfo", inManagedObjectContext: sharedContext) as! MapViewInfo
-        //        mapInfo.lat = map.centerCoordinate.latitude
-        //        mapInfo.lon = map.centerCoordinate.longitude
-        //        mapInfo.latDelta = map.region.span.latitudeDelta
-        //        mapInfo.lonDelta = map.region.span.longitudeDelta
         map.centerCoordinate.latitude = Double(mapInfo.lat!)
         map.centerCoordinate.longitude = Double(mapInfo.lon!)
         let mapSpan = MKCoordinateSpanMake(Double(mapInfo.latDelta!), Double(mapInfo.lonDelta!))
         map.region = MKCoordinateRegionMake(map.centerCoordinate, mapSpan)
         
-        print("VWA")
-        print(Double(mapInfo.lat!))
-        print(Double(mapInfo.lon!))
-        //let mapRegion = MKMapSizeMake(Double(mapInfo.lonDelta!), Double(mapInfo.latDelta!))
-        //CoreDataStackManager.sharedInstance().saveContext()
-        
         let pinArray = fetchPins()
         displayPins(pinArray)
     }
-    
-    override func viewDidAppear(animated: Bool) {
-        //readAndDisplayAnnotations()
-    }//        var sharedContext: NSManagedObjectContext {
-//            return CoreDataStackManager.sharedInstance().managedObjectContext
-//        }
-
-    
-//    func mapView(mapView: MKMapView, viewForAnnotation annotation: MKAnnotation) -> MKAnnotationView? {
-//        if (annotation is MKUserLocation) {
-//            //if annotation is not an MKPointAnnotation (eg. MKUserLocation),
-//            //return nil so map draws default view for it (eg. blue dot)...
-//            return nil
-//        }
-//        
-//        let reuseId = "test"
-//        
-//        var anView = mapView.dequeueReusableAnnotationViewWithIdentifier(reuseId)
-//        if anView == nil {
-//            anView = MKAnnotationView(annotation: annotation, reuseIdentifier: reuseId)
-//            anView?.image = UIImage(named:"xaxas")
-//            anView?.canShowCallout = true
-//        }
-//        else {
-//            //we are re-using a view, update its annotation reference...
-//            anView?.annotation = annotation
-//        }
-//        
-//        return anView
-//    }
     
     func addAnnotation(gestureRecognizer:UIGestureRecognizer){
         if gestureRecognizer.state == UIGestureRecognizerState.Began { // allows only 1 pin per touch
@@ -104,10 +63,8 @@ class MapViewController: UIViewController, MKMapViewDelegate {
             let newCoordinates = map.convertPoint(touchPoint, toCoordinateFromView: map)
             let annotation = MKPointAnnotation()
             annotation.coordinate = newCoordinates
-            annotation.title = String(newCoordinates)// as String
+            //annotation.title = String(newCoordinates)// as String
             map.addAnnotation(annotation)
-            print(newCoordinates.latitude)
-            print(newCoordinates.longitude)
             
             // Add a new Pin object to data store
             // First, create a dictionary to init the Pin
@@ -117,6 +74,34 @@ class MapViewController: UIViewController, MKMapViewDelegate {
             ]
             
             currentPin = Pin(dictionary: pinDictionary, context: sharedContext)
+            // in order to get a permanent ID, can save the Pin into the context
+            CoreDataStackManager.sharedInstance().saveContext()
+            annotation.title = String(currentPin!.objectID.URIRepresentation())
+            
+            
+//            //TODO: would it be better to set the pinID when Pin is instantiated?
+//            //if currentPin?.pinID == nil {
+//                currentPin?.pinID = fetchPins().count
+//            //}
+//            print("CPID: \(currentPin?.pinID)")
+            // fetch the photo url's for this Pin
+            flickr.getFlickrImagesForCoordinates(newCoordinates) { success, error in
+                if success {
+                    //print(self.model.photoArray)
+                    for url in self.model.photoArray! {
+                        let entity = NSEntityDescription.entityForName("Photo", inManagedObjectContext: self.sharedContext)!
+                        let photo = Photo(entity: entity, insertIntoManagedObjectContext: self.sharedContext)
+                        //let photoDictionary = ["url": url]
+                        // add photo to the context, with the url string
+                        
+                        //let photo = Photo(dictionary: photoDictionary, context: self.sharedContext)
+                        photo.pin = self.currentPin
+                        photo.url = url
+                    }
+                } else {
+                    print("Error in getting Flickr Images: \(error)")
+                }
+            }
             CoreDataStackManager.sharedInstance().saveContext()
         }
 //        if (annotation.state == UIGestureRecognizerState.Ended)
@@ -138,12 +123,16 @@ class MapViewController: UIViewController, MKMapViewDelegate {
                 
                 // The lat and long are used to create a CLLocationCoordinates2D instance.
                 let coordinate = CLLocationCoordinate2D(latitude: lat, longitude: lon)
-                let name = String(lat) + ", " + String(lon)
+                let name = String(pin.objectID.URIRepresentation())   //String(lat) + ", " + String(lon)
                 
+                print("objectID: \(pin.objectID)")
+                print("URI: \(pin.objectID.URIRepresentation())")
+                print("String(URI): \(String(pin.objectID.URIRepresentation()))")
+                //sharedContext.persistentStoreCoordinator!.managedObjectIDForURIRepresentation(pin.objectID)
                 // Here we create the annotation and set its coordiate, title, and subtitle properties
                 let annotation = MKPointAnnotation()
                 annotation.coordinate = coordinate
-                annotation.title =  name
+                annotation.title = name
                 // Finally we place the annotation in an array of annotations.
                 annotations.append(annotation)
             }
@@ -259,8 +248,8 @@ class MapViewController: UIViewController, MKMapViewDelegate {
             pinView!.canShowCallout = true
             pinView!.pinTintColor = UIColor.brownColor()
             pinView!.rightCalloutAccessoryView = UIButton(type: .DetailDisclosure)
-            pinView?.animatesDrop = true
-            pinView?.draggable = true
+            pinView?.animatesDrop = false
+            //pinView?.draggable = true // only works for after the pin is place (not what we're doing)
         }
         else {
             pinView!.annotation = annotation
@@ -312,6 +301,7 @@ class MapViewController: UIViewController, MKMapViewDelegate {
     func mapView(mapView: MKMapView, didSelectAnnotationView view: MKAnnotationView) {
         saveMapInfo()
         model.photoArray?.removeAll() // ensure that we don't see images from a previous pin by deleting them
+        //TODO: Should be able to delete this photoArray, and get images directly from core data
         flickr.getFlickrImagesForCoordinates((view.annotation?.coordinate)!) { success, error in
             if success {
                 print("Flickr Success")
@@ -321,13 +311,27 @@ class MapViewController: UIViewController, MKMapViewDelegate {
     }
     
     override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
+        //TODO: Not associating this pin with a managed object, therefore Pin doesn't get sent, and crash when Pin optional is force-unwrapped in CollectionViewController. Only happens when first launching app, but with saved core data (?)
         let pin = sender as! MKAnnotation
+        let pinIDString = pin.title!
+        let pinURI = NSURL(string: pinIDString!)
+        let pinID = sharedContext.persistentStoreCoordinator?.managedObjectIDForURIRepresentation(pinURI!)
+        do {
+            currentPin = try sharedContext.existingObjectWithID(pinID!) as? Pin
+        } catch {
+            print("Error: \(error)")
+        }
         if let collectionEditor = segue.destinationViewController as? CollectionEditor {
 //            let coordinatesText = String(pin.coordinate.latitude) + ", " + String(pin.coordinate.longitude)
 //            collectionEditor.coordinatesText = coordinatesText
 
             collectionEditor.coordinates = pin.coordinate
-            collectionEditor.currentPin = currentPin
+            print("pin.coordinate: \(pin.coordinate)")
+            if currentPin != nil {
+                collectionEditor.currentPin = currentPin
+            } else {
+                print("Segueing to maps, but there is no currentPin!")
+            }
         } else {
             print("segue to CollectionEditor fail")
         }

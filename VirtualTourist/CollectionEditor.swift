@@ -21,7 +21,9 @@ class CollectionEditor: UIViewController, MKMapViewDelegate, UICollectionViewDel
     //@IBOutlet weak var coordinatesLabel: UILabel!
     
     override func viewDidLoad() {
+        
         super.viewDidLoad()
+        print("Collection Editor currentPin: \(currentPin)")
         mapView.delegate = self
         let span = MKCoordinateSpanMake(0.25, 0.25)
         //coordinatesLabel.text = coordinatesText

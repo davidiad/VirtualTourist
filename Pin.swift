@@ -19,6 +19,7 @@ class Pin: NSManagedObject {
 
     @NSManaged var lat: NSNumber?
     @NSManaged var lon: NSNumber?
+    @NSManaged var pinID: NSNumber?
     @NSManaged var photos: [Photo]
     
     // standard Core Data init method.
