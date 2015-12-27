@@ -8,17 +8,26 @@
 
 import UIKit
 import MapKit
+import CoreData
 
 class CollectionEditor: UIViewController, MKMapViewDelegate, UICollectionViewDelegate {
 
     let flickr = FlickrClient.sharedInstance
+    let model = VirtualTouristModel.sharedInstance
     
+    lazy var sharedContext = {
+        CoreDataStackManager.sharedInstance().managedObjectContext
+    }()
     var coordinates : CLLocationCoordinate2D?
     var currentPin: Pin?
-
+    
+    var embeddedCollectionView: CollectionViewController?
+    
+    var testy: Int = 0
 
     @IBOutlet weak var mapView: MKMapView!
     //@IBOutlet weak var coordinatesLabel: UILabel!
+    @IBOutlet weak var bottomButton: UIBarButtonItem!
     
     override func viewDidLoad() {
         
@@ -76,18 +85,56 @@ class CollectionEditor: UIViewController, MKMapViewDelegate, UICollectionViewDel
     
     // In a storyboard-based application, you will often want to do a little preparation before navigation
     override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
-        // Get the new view controller using segue.destinationViewController.
-//        flickr.getFlickrImagesForCoordinates(coordinates!) { success, error in
-//            if success {
-//                print("Flickr Success")
-        
-                if let collectionViewController = segue.destinationViewController as? CollectionViewController {
-                    collectionViewController.coordinates = self.coordinates
-                    collectionViewController.currentPin = self.currentPin
+        updateBottomButton()
+        if let collectionViewController = segue.destinationViewController as? CollectionViewController {
+            collectionViewController.coordinates = self.coordinates
+            collectionViewController.currentPin = self.currentPin
+            embeddedCollectionView = collectionViewController
+        } else {
+            print("segue to CollectionViewController fail")
+        }
+    }
+    
+    @IBAction func bottomButtonTapped(sender: AnyObject) {
+        if embeddedCollectionView?.selectedIndexes.count > 0 {
+            embeddedCollectionView?.deleteSelectedPhotos()
+            self.updateBottomButton()
+        } else {
+            embeddedCollectionView?.deleteAllPhotos()
+            // fetch the photo url's for this Pin
+            // TODO: move to a better place, and consolidate with similar code in MapViewController
+            flickr.getFlickrImagesForCoordinates(coordinates!) { success, error in
+                if success {
+                    for url in self.model.photoArray! {
+                        dispatch_async(dispatch_get_main_queue(), {
+                            let entity = NSEntityDescription.entityForName("Photo", inManagedObjectContext: self.sharedContext)!
+                            let photo = Photo(entity: entity, insertIntoManagedObjectContext: self.sharedContext)
+                            photo.pin = self.currentPin
+                            photo.url = url
+                            
+                            let request = NSURLRequest(URL: NSURL(string: url)!)
+                            NSURLConnection.sendAsynchronousRequest(request, queue: NSOperationQueue.mainQueue()) {
+                                (response: NSURLResponse?, data: NSData?, error: NSError?) -> Void in
+                                if let imageData = data as NSData? {
+                                    //
+                                }
+                            }
+                        })
+                    }
                 } else {
-                    print("segue to CollectionViewController fail")
+                    print("Error in getting Flickr Images: \(error)")
                 }
             }
-//        }
-//    }
+            CoreDataStackManager.sharedInstance().saveContext()
+
+        }
+    }
+    
+    func updateBottomButton() {
+       // if selectedIndexes.count > 0 {
+       //     bottomButton.title = "Remove Selected Photos"
+      //  } else {
+            bottomButton.title = "New Collection"
+       // }
+    }
 }

@@ -136,20 +136,24 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
         let cell = collectionView.dequeueReusableCellWithReuseIdentifier(reuseIdentifier, forIndexPath: indexPath) as! CollectionViewCell
     
         // Configure the cell
-        
         let imageView = UIImageView()
         imageView.contentMode = UIViewContentMode.ScaleToFill
-        if model.photoArray?.count > 0 {
-            print("\(model.photoArray!.count) photos")
-            if indexPath.row < model.photoArray?.count {
-                let url = model.photoArray![indexPath.row]
-                imageView.imageFromUrl(url)
-                //imageView.frame = CGRect(x: 0, y: 0, width: 100, height: 100)
-                imageView.frame = CGRect(x: 2, y: 2, width: csize.width - 4, height: csize.height - 4)
-                imageView.image = cell.image
-            }
-            
-        }
+        let photo = self.fetchedResultsController.objectAtIndexPath(indexPath) as! Photo
+        let url = photo.url
+        imageView.imageFromUrl(url!)
+        imageView.frame = CGRect(x: 2, y: 2, width: csize.width - 4, height: csize.height - 4)
+        imageView.image = cell.image
+        
+//        if model.photoArray?.count > 0 {
+//            if indexPath.row < model.photoArray?.count {
+//                let url = model.photoArray![indexPath.row]
+//                imageView.imageFromUrl(url)
+//                //imageView.frame = CGRect(x: 0, y: 0, width: 100, height: 100)
+//                imageView.frame = CGRect(x: 2, y: 2, width: csize.width - 4, height: csize.height - 4)
+//                imageView.image = cell.image
+//            }
+//            
+//        }
         cell.addSubview(imageView)
         cell.backgroundColor = UIColor.redColor()
         return cell
@@ -159,6 +163,39 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
 
     // MARK: UICollectionViewDelegate
 
+    override func collectionView(collectionView: UICollectionView, didSelectItemAtIndexPath indexPath: NSIndexPath) {
+        
+        let cell = collectionView.cellForItemAtIndexPath(indexPath) as! CollectionViewCell
+        
+        // Whenever a cell is tapped we will toggle its presence in the selectedIndexes array
+        //if let index = find(selectedIndexes, indexPath) {
+        if let index = selectedIndexes.indexOf(indexPath) {
+            selectedIndexes.removeAtIndex(index)
+        } else {
+            selectedIndexes.append(indexPath)
+        }
+        
+        // Send the updated info to the button, so it knows what to say
+        sendInfoToButton()
+        
+        
+        if cell.alpha < 1.0 {
+            cell.alpha = 1.0
+        } else {
+            cell.alpha = 0.3
+        }
+    }
+    
+    func sendInfoToButton () {
+        if let parentVC = self.parentViewController as? CollectionEditor {
+            if selectedIndexes.count > 0 {
+                parentVC.bottomButton.title = "Remove Selected Photos"
+            } else {
+                parentVC.bottomButton.title = "New Collection"
+            }
+        }
+    }
+    
     /*
     // Uncomment this method to specify if the specified item should be highlighted during tracking
     override func collectionView(collectionView: UICollectionView, shouldHighlightItemAtIndexPath indexPath: NSIndexPath) -> Bool {
@@ -280,7 +317,27 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
             }, completion: nil)
     }
     
+    func deleteAllPhotos() {
+        
+        for photo in fetchedResultsController.fetchedObjects as! [Photo] {
+            sharedContext.deleteObject(photo)
+        }
+    }
     
+    func deleteSelectedPhotos() {
+        var photosToDelete = [Photo]()
+        
+        for indexPath in selectedIndexes {
+            photosToDelete.append(fetchedResultsController.objectAtIndexPath(indexPath) as! Photo)
+        }
+        
+        for photo in photosToDelete {
+            sharedContext.deleteObject(photo)
+        }
+        
+        selectedIndexes = [NSIndexPath]()
+    }
+
     
 }
 

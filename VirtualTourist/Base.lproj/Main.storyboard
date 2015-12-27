@@ -25,7 +25,7 @@
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="1701" y="329"/>
+            <point key="canvasLocation" x="1758" y="-28"/>
         </scene>
         <!--Collection Editor-->
         <scene sceneID="Eki-bU-Iso">
@@ -40,7 +40,7 @@
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <mapView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" mapType="standard" scrollEnabled="NO" rotateEnabled="NO" translatesAutoresizingMaskIntoConstraints="NO" id="GJ8-dB-hsP">
-                                <rect key="frame" x="0.0" y="114" width="600" height="180"/>
+                                <rect key="frame" x="0.0" y="64" width="600" height="180"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="180" id="zu5-k4-bGm"/>
                                 </constraints>
@@ -52,24 +52,40 @@
                                 <nil key="highlightedColor"/>
                             </label>
                             <containerView opaque="NO" tag="3000" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="WHc-Iq-GXK">
-                                <rect key="frame" x="0.0" y="330.5" width="600" height="269.5"/>
+                                <rect key="frame" x="0.0" y="244" width="600" height="312"/>
                                 <color key="backgroundColor" red="0.82162519190000005" green="0.091268024320000002" blue="1" alpha="1" colorSpace="calibratedRGB"/>
                                 <connections>
                                     <segue destination="V89-CL-Ahw" kind="embed" id="Sen-2v-PVv"/>
                                 </connections>
                             </containerView>
+                            <toolbar opaque="NO" clearsContextBeforeDrawing="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="6Xz-g7-sIp">
+                                <rect key="frame" x="0.0" y="556" width="600" height="44"/>
+                                <items>
+                                    <barButtonItem style="plain" systemItem="flexibleSpace" id="YWD-9N-mHy"/>
+                                    <barButtonItem title="Button" id="l1L-HW-JAC">
+                                        <connections>
+                                            <action selector="bottomButtonTapped:" destination="B5l-87-boa" id="Ws7-ye-Uky"/>
+                                        </connections>
+                                    </barButtonItem>
+                                    <barButtonItem style="plain" systemItem="flexibleSpace" id="BNl-gu-QSz"/>
+                                </items>
+                            </toolbar>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                         <constraints>
-                            <constraint firstItem="GJ8-dB-hsP" firstAttribute="top" secondItem="pGQ-aI-wPc" secondAttribute="bottom" constant="50" id="322-ON-APp"/>
+                            <constraint firstItem="GJ8-dB-hsP" firstAttribute="top" secondItem="pGQ-aI-wPc" secondAttribute="bottom" id="322-ON-APp"/>
                             <constraint firstItem="GJ8-dB-hsP" firstAttribute="trailing" secondItem="kA3-tP-gyK" secondAttribute="trailing" id="3Bb-bY-TTl"/>
+                            <constraint firstItem="6Xz-g7-sIp" firstAttribute="top" secondItem="WHc-Iq-GXK" secondAttribute="bottom" id="5qa-E2-Ppb"/>
+                            <constraint firstItem="6Xz-g7-sIp" firstAttribute="leading" secondItem="kA3-tP-gyK" secondAttribute="leading" id="Dgj-QB-Zaz"/>
                             <constraint firstItem="GJ8-dB-hsP" firstAttribute="leading" secondItem="kA3-tP-gyK" secondAttribute="leading" id="MwI-5I-glj"/>
                             <constraint firstAttribute="leading" secondItem="WHc-Iq-GXK" secondAttribute="leading" id="N7G-xJ-8BZ"/>
+                            <constraint firstItem="q21-9u-6rj" firstAttribute="top" secondItem="6Xz-g7-sIp" secondAttribute="bottom" id="U0w-us-ysA"/>
                             <constraint firstItem="k8G-dV-1z4" firstAttribute="leading" secondItem="kA3-tP-gyK" secondAttribute="leadingMargin" id="f62-qu-5ck"/>
                             <constraint firstItem="q21-9u-6rj" firstAttribute="top" secondItem="k8G-dV-1z4" secondAttribute="bottom" constant="277.5" id="nER-Kw-LKk"/>
-                            <constraint firstItem="WHc-Iq-GXK" firstAttribute="top" secondItem="GJ8-dB-hsP" secondAttribute="bottom" constant="36.5" id="puV-5k-Iof"/>
+                            <constraint firstItem="WHc-Iq-GXK" firstAttribute="top" secondItem="GJ8-dB-hsP" secondAttribute="bottom" id="puV-5k-Iof"/>
                             <constraint firstItem="WHc-Iq-GXK" firstAttribute="top" secondItem="k8G-dV-1z4" secondAttribute="bottom" constant="8" id="r0i-sw-ySg"/>
-                            <constraint firstItem="WHc-Iq-GXK" firstAttribute="bottom" secondItem="kA3-tP-gyK" secondAttribute="bottom" id="uE6-38-XeO"/>
+                            <constraint firstAttribute="trailing" secondItem="6Xz-g7-sIp" secondAttribute="trailing" id="tqL-Bf-ewg"/>
+                            <constraint firstItem="WHc-Iq-GXK" firstAttribute="bottom" secondItem="kA3-tP-gyK" secondAttribute="bottom" constant="-44" id="uE6-38-XeO"/>
                             <constraint firstItem="WHc-Iq-GXK" firstAttribute="trailing" secondItem="kA3-tP-gyK" secondAttribute="trailing" id="yYJ-l4-7xH"/>
                         </constraints>
                         <variation key="default">
@@ -79,6 +95,7 @@
                         </variation>
                     </view>
                     <connections>
+                        <outlet property="bottomButton" destination="l1L-HW-JAC" id="PLZ-uZ-qDz"/>
                         <outlet property="mapView" destination="GJ8-dB-hsP" id="bJW-wW-Gcc"/>
                     </connections>
                 </viewController>
@@ -91,7 +108,7 @@
             <objects>
                 <collectionViewController id="V89-CL-Ahw" customClass="CollectionViewController" customModule="VirtualTourist" customModuleProvider="target" sceneMemberID="viewController">
                     <collectionView key="view" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" dataMode="prototypes" id="Dcc-vu-JNf">
-                        <rect key="frame" x="0.0" y="0.0" width="600" height="269.5"/>
+                        <rect key="frame" x="0.0" y="0.0" width="600" height="312"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <color key="backgroundColor" red="1" green="0.94907457750000002" blue="0.62519395369999997" alpha="1" colorSpace="calibratedRGB"/>
                         <collectionViewFlowLayout key="collectionViewLayout" minimumLineSpacing="4" minimumInteritemSpacing="4" id="b1Y-U6-XKi">
@@ -133,7 +150,7 @@
                 </collectionViewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="Ybj-gG-YhF" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="3051" y="-129.25"/>
+            <point key="canvasLocation" x="3141" y="-165"/>
         </scene>
         <!--Navigation Controller-->
         <scene sceneID="NOb-fG-jIK">

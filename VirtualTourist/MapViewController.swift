@@ -79,24 +79,24 @@ class MapViewController: UIViewController, MKMapViewDelegate {
             annotation.title = String(currentPin!.objectID.URIRepresentation())
             
             
-//            //TODO: would it be better to set the pinID when Pin is instantiated?
-//            //if currentPin?.pinID == nil {
-//                currentPin?.pinID = fetchPins().count
-//            //}
-//            print("CPID: \(currentPin?.pinID)")
             // fetch the photo url's for this Pin
             flickr.getFlickrImagesForCoordinates(newCoordinates) { success, error in
                 if success {
-                    //print(self.model.photoArray)
                     for url in self.model.photoArray! {
-                        let entity = NSEntityDescription.entityForName("Photo", inManagedObjectContext: self.sharedContext)!
-                        let photo = Photo(entity: entity, insertIntoManagedObjectContext: self.sharedContext)
-                        //let photoDictionary = ["url": url]
-                        // add photo to the context, with the url string
-                        
-                        //let photo = Photo(dictionary: photoDictionary, context: self.sharedContext)
-                        photo.pin = self.currentPin
-                        photo.url = url
+                        dispatch_async(dispatch_get_main_queue(), {
+                            let entity = NSEntityDescription.entityForName("Photo", inManagedObjectContext: self.sharedContext)!
+                            let photo = Photo(entity: entity, insertIntoManagedObjectContext: self.sharedContext)
+                            photo.pin = self.currentPin
+                            photo.url = url
+
+                            let request = NSURLRequest(URL: NSURL(string: url)!)
+                            NSURLConnection.sendAsynchronousRequest(request, queue: NSOperationQueue.mainQueue()) {
+                                (response: NSURLResponse?, data: NSData?, error: NSError?) -> Void in
+                                if let imageData = data as NSData? {
+                                    //self.image = UIImage(data: imageData)
+                                }
+                            }
+                        })
                     }
                 } else {
                     print("Error in getting Flickr Images: \(error)")
