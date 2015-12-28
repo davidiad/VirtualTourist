@@ -80,7 +80,10 @@ class MapViewController: UIViewController, MKMapViewDelegate {
             
             
             // fetch the photo url's for this Pin
-            flickr.getFlickrImagesForCoordinates(newCoordinates) { success, error in
+            flickr.getFlickrImagesForCoordinates(newCoordinates, getTotal: true) { success, error in
+                print("getTotal was true")
+            }
+            flickr.getFlickrImagesForCoordinates(newCoordinates, getTotal:  false) { success, error in
                 if success {
                     for url in self.model.photoArray! {
                         dispatch_async(dispatch_get_main_queue(), {
@@ -302,7 +305,10 @@ class MapViewController: UIViewController, MKMapViewDelegate {
         saveMapInfo()
         model.photoArray?.removeAll() // ensure that we don't see images from a previous pin by deleting them
         //TODO: Should be able to delete this photoArray, and get images directly from core data
-        flickr.getFlickrImagesForCoordinates((view.annotation?.coordinate)!) { success, error in
+        flickr.getFlickrImagesForCoordinates((view.annotation?.coordinate)!, getTotal: true) { success, error in
+            print("getTotal was true")
+        }
+        flickr.getFlickrImagesForCoordinates((view.annotation?.coordinate)!, getTotal: false) { success, error in
             if success {
                 print("Flickr Success")
             }

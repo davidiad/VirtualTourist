@@ -103,7 +103,10 @@ class CollectionEditor: UIViewController, MKMapViewDelegate, UICollectionViewDel
             embeddedCollectionView?.deleteAllPhotos()
             // fetch the photo url's for this Pin
             // TODO: move to a better place, and consolidate with similar code in MapViewController
-            flickr.getFlickrImagesForCoordinates(coordinates!) { success, error in
+            flickr.getFlickrImagesForCoordinates(coordinates!, getTotal:  true) { success, error in
+                
+            }
+            flickr.getFlickrImagesForCoordinates(coordinates!, getTotal: false) { success, error in
                 if success {
                     for url in self.model.photoArray! {
                         dispatch_async(dispatch_get_main_queue(), {
