@@ -125,8 +125,8 @@
                                     <rect key="frame" x="0.0" y="0.0" width="120" height="120"/>
                                     <autoresizingMask key="autoresizingMask"/>
                                     <subviews>
-                                        <imageView userInteractionEnabled="NO" contentMode="scaleAspectFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" image="puppy" translatesAutoresizingMaskIntoConstraints="NO" id="nbC-1f-hdG">
-                                            <rect key="frame" x="0.0" y="0.0" width="120" height="124"/>
+                                        <imageView userInteractionEnabled="NO" contentMode="scaleAspectFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="nbC-1f-hdG">
+                                            <rect key="frame" x="2" y="2" width="116" height="116"/>
                                         </imageView>
                                         <activityIndicatorView opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" fixedFrame="YES" hidesWhenStopped="YES" animating="YES" style="whiteLarge" translatesAutoresizingMaskIntoConstraints="NO" id="jc6-Qn-PU0">
                                             <rect key="frame" x="42" y="41" width="37" height="37"/>
@@ -136,6 +136,12 @@
                                     <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                                 </view>
                                 <color key="backgroundColor" red="1" green="0.160998218" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
+                                <constraints>
+                                    <constraint firstItem="nbC-1f-hdG" firstAttribute="leading" secondItem="C6R-nR-vnA" secondAttribute="leading" constant="2" id="1gZ-Zq-akb"/>
+                                    <constraint firstItem="nbC-1f-hdG" firstAttribute="trailing" secondItem="C6R-nR-vnA" secondAttribute="trailing" constant="-2" id="FG1-iI-X61"/>
+                                    <constraint firstItem="nbC-1f-hdG" firstAttribute="bottom" secondItem="C6R-nR-vnA" secondAttribute="bottom" constant="-2" id="Ugz-Sf-zJ8"/>
+                                    <constraint firstItem="nbC-1f-hdG" firstAttribute="top" secondItem="C6R-nR-vnA" secondAttribute="top" constant="2" id="oQm-1z-BpT"/>
+                                </constraints>
                                 <edgeInsets key="layoutMargins" top="8" left="8" bottom="8" right="8"/>
                                 <connections>
                                     <outlet property="cellView" destination="nbC-1f-hdG" id="KE7-vT-cFl"/>
@@ -171,7 +177,4 @@
             <point key="canvasLocation" x="889" y="329"/>
         </scene>
     </scenes>
-    <resources>
-        <image name="puppy" width="2448" height="3264"/>
-    </resources>
 </document>

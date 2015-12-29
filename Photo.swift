@@ -8,6 +8,7 @@
 
 import Foundation
 import CoreData
+import UIKit
 
 
 class Photo: NSManagedObject {
@@ -27,7 +28,17 @@ class Photo: NSManagedObject {
         super.init(entity: entity,insertIntoManagedObjectContext: context)
         
         url = dictionary[url!] as? String
-        //pin = dictionary[pin] as? Pin
+    }
+    
+    var photoImage: UIImage? {
+        
+        get {
+            return VirtualTouristModel.Caches.imageCache.imageWithIdentifier(url)
+        }
+        
+        set {
+            VirtualTouristModel.Caches.imageCache.storeImage(newValue, withIdentifier: url!)
+        }
     }
 
 }

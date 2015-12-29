@@ -243,6 +243,28 @@ class FlickrClient: NSObject {
         /* 9 - Resume (execute) the task */
         task.resume()
     }
+    
+    // MARK: - All purpose task method for images
+    
+    func taskForImage(filePath: String, completionHandler: (imageData: NSData?, error: NSError?) ->  Void) -> NSURLSessionTask {
+        
+        let url = NSURL(string: filePath)!
+        let request = NSURLRequest(URL: url)
+        let session = NSURLSession.sharedSession()
+        
+        let task = session.dataTaskWithRequest(request) {data, response, downloadError in
+            
+            if let error = downloadError {
+                completionHandler(imageData: nil, error: error)
+            } else {
+                completionHandler(imageData: data, error: nil)
+            }
+        }
+        
+        task.resume()
+        
+        return task
+    }
 
     // Configure UI
     

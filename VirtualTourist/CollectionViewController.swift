@@ -134,32 +134,71 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
 
     override func collectionView(collectionView: UICollectionView, cellForItemAtIndexPath indexPath: NSIndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCellWithReuseIdentifier(reuseIdentifier, forIndexPath: indexPath) as! CollectionViewCell
-    
-        // Configure the cell
-        let imageView = UIImageView()
-        imageView.contentMode = UIViewContentMode.ScaleToFill
-        let photo = self.fetchedResultsController.objectAtIndexPath(indexPath) as! Photo
-        let url = photo.url
-        imageView.imageFromUrl(url!)
-        imageView.frame = CGRect(x: 2, y: 2, width: csize.width - 4, height: csize.height - 4)
-        imageView.image = cell.image
         
-//        if model.photoArray?.count > 0 {
-//            if indexPath.row < model.photoArray?.count {
-//                let url = model.photoArray![indexPath.row]
-//                imageView.imageFromUrl(url)
-//                //imageView.frame = CGRect(x: 0, y: 0, width: 100, height: 100)
-//                imageView.frame = CGRect(x: 2, y: 2, width: csize.width - 4, height: csize.height - 4)
-//                imageView.image = cell.image
-//            }
-//            
-//        }
-        cell.addSubview(imageView)
-        cell.backgroundColor = UIColor.redColor()
+        configureCell(cell, indexPath: indexPath)
+    
+//        // Configure the cell
+//        let imageView = UIImageView()
+//        imageView.contentMode = UIViewContentMode.ScaleToFill
+//        let photo = self.fetchedResultsController.objectAtIndexPath(indexPath) as! Photo
+//        let url = photo.url
+//        imageView.imageFromUrl(url!)
+//        imageView.frame = CGRect(x: 2, y: 2, width: csize.width - 4, height: csize.height - 4)
+//        imageView.image = cell.image
+//        cell.addSubview(imageView)
+//        cell.backgroundColor = UIColor.redColor()
         return cell
     }
     
-    
+    // Configure cell for image cache etc
+//    func configureCell(cell: TaskCancelingTableViewCell, movie: Movie) {
+    func configureCell(cell: CollectionViewCell, indexPath: NSIndexPath) {
+        var photoImage = UIImage(named: "puppy")
+//        let imageView = UIImageView()
+//        imageView.contentMode = UIViewContentMode.ScaleToFill
+//        imageView.frame = CGRect(x: 2, y: 2, width: csize.width - 4, height: csize.height - 4)
+        
+        let photo = self.fetchedResultsController.objectAtIndexPath(indexPath) as! Photo
+        //let url = photo.url
+        // Set the Photo Image
+        if photo.url == nil || photo.url == "" {
+            photoImage = UIImage(named: "puppy")
+        } else if photo.photoImage != nil {
+            // photoImage is from the cache
+            photoImage = photo.photoImage
+        } else { // "This is the interesting case."- Jason. The Photo has an image name, but it is not downloaded yet.
+            
+            // Start the task that will eventually download the image
+            let task = FlickrClient.sharedInstance.taskForImage(photo.url!) { data, error in
+                
+                if let error = error {
+                    print("Photo download error: \(error.localizedDescription)")
+                }
+                
+                if let data = data {
+                    // Create the image
+                    let image = UIImage(data: data)
+                    
+                    // update the model, so that the information gets cached
+                    photo.photoImage = image
+                    
+                    // Will this be handled by FetchedResultsController?
+//                    // update the cell later, on the main thread
+//                    
+                    dispatch_async(dispatch_get_main_queue()) {
+                        cell.cellView.image = image
+                    }
+                }
+            }
+            
+            // This is the custom property on this cell. See TaskCancelingTableViewCell.swift for details.
+            //cell.taskToCancelifCellIsReused = task
+        }
+        
+        // Configure the cell
+        cell.cellView.contentMode = UIViewContentMode.ScaleToFill
+        cell.cellView.image = photoImage
+    }
 
     // MARK: UICollectionViewDelegate
 
