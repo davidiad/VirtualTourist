@@ -15,8 +15,13 @@ let reuseIdentifier = "Cell"
 var csize: CGSize = CGSizeMake(100, 100)
 
 class CollectionViewController: UICollectionViewController, NSFetchedResultsControllerDelegate {
-
-
+    
+    // Question: Before enabling the bottom button, so we need to check that all cells have downloaded? Or just the visible ones? Or just that the url's have been fetched? Can I check to see if the cell's photoImage property is not nil? Or might those be deleted from the cache by the system, so unreliable?
+    /*
+    "If you wish to hold state for an entry in your collection, you'll have to store it separately from the cell itself. For example, an NSArray of structs (or custom NSObjects) that map to the indexPath.row value."
+    */
+    
+    
     let model = VirtualTouristModel.sharedInstance
     var coordinates : CLLocationCoordinate2D?
     var currentPin: Pin?

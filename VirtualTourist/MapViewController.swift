@@ -36,10 +36,6 @@ class MapViewController: UIViewController, MKMapViewDelegate {
     @IBOutlet weak var map: MKMapView!
     
     override func viewDidLoad() {
-        //setupNav()
-//        NSNotificationCenter.defaultCenter().addObserver(self, selector: "readAndDisplayAnnotations", name: refreshNotificationKey, object: nil)
-//        navigationController?.title = "On The Map"
-        //TODO: read in location and zoom from persisted MapViewInfo object
         map.delegate = self
         let longpress = UILongPressGestureRecognizer(target: self, action: "addAnnotation:")
         longpress.minimumPressDuration = 0.7
@@ -63,7 +59,6 @@ class MapViewController: UIViewController, MKMapViewDelegate {
             let newCoordinates = map.convertPoint(touchPoint, toCoordinateFromView: map)
             let annotation = MKPointAnnotation()
             annotation.coordinate = newCoordinates
-            //annotation.title = String(newCoordinates)// as String
             map.addAnnotation(annotation)
             
             // Add a new Pin object to data store
@@ -164,73 +159,6 @@ class MapViewController: UIViewController, MKMapViewDelegate {
             return false
         }
     }
-    /*
-    func addAnnotation(gestureRecognizer:UIGestureRecognizer){
-        if gestureRecognizer.state == UIGestureRecognizerState.Began {
-            var touchPoint = gestureRecognizer.locationInView(mapView)
-            var newCoordinates = mapView.convertPoint(touchPoint, toCoordinateFromView: mapView)
-            let annotation = MKPointAnnotation()
-            annotation.coordinate = newCoordinates
-            
-            CLGeocoder().reverseGeocodeLocation(CLLocation(latitude: newCoordinates.latitude, longitude: newCoordinates.longitude), completionHandler: {(placemarks, error) -> Void in
-                if error != nil {
-                    print("Reverse geocoder failed with error" + error!.localizedDescription)
-                    return
-                }
-                
-                if placemarks!.count > 0 {
-                    let pm = placemarks![0]
-                    
-                    // not all places have thoroughfare & subThoroughfare so validate those values
-                    annotation.title = pm.thoroughfare! + ", " + pm.subThoroughfare!
-                    annotation.subtitle = pm.subLocality
-                    self.mapView.addAnnotation(annotation)
-                    print(pm)
-                }
-                else {
-                    annotation.title = "Unknown Place"
-                    self.mapView.addAnnotation(annotation)
-                    print("Problem with the data received from geocoder")
-                }
-                places.append(["name":annotation.title,"latitude":"\(newCoordinates.latitude)","longitude":"\(newCoordinates.longitude)"])
-            })
-        }
-    }
-    */
-//    func readAndDisplayAnnotations() {
-//        if let _studentInfoArray = OnTheMapData.sharedInstance.studentInfoArray {
-//            
-//            // We will create an MKPointAnnotation for each dictionary in "locations". The
-//            // point annotations will be stored in this array, and then provided to the map view.
-//            var annotations = [MKPointAnnotation]()
-//            
-//            for studentInfo in _studentInfoArray {
-//                
-//                let lat = CLLocationDegrees(studentInfo.lat!)
-//                let lon = CLLocationDegrees(studentInfo.lon!)
-//                
-//                // The lat and long are used to create a CLLocationCoordinates2D instance.
-//                let coordinate = CLLocationCoordinate2D(latitude: lat, longitude: lon)
-//                let name = studentInfo.firstName! + " " + studentInfo.lastName!
-//                
-//                // Here we create the annotation and set its coordiate, title, and subtitle properties
-//                let annotation = MKPointAnnotation()
-//                annotation.coordinate = coordinate
-//                annotation.title =  name
-//                if let linkString = studentInfo.link {
-//                    let mediaURL = "\(linkString)"
-//                    annotation.subtitle = mediaURL
-//                }
-//                // Finally we place the annotation in an array of annotations.
-//                annotations.append(annotation)
-//            }
-//            
-//            // When the array is complete, we add the annotations to the map.
-//            self.mapView.addAnnotations(annotations)
-//        } else {
-//            //print("studentInfo nil?")
-//        }
-//    }
     
     // MARK: - MKMapViewDelegate
     
@@ -262,7 +190,7 @@ class MapViewController: UIViewController, MKMapViewDelegate {
         return pinView
     }
     
-//    func mapView(mapView: MKMapView, annotationView view: MKAnnotationView, didChangeDragState newState: MKAnnotationViewDragState, fromOldState oldState: MKAnnotationViewDragState) {
+    func mapView(mapView: MKMapView, annotationView view: MKAnnotationView, didChangeDragState newState: MKAnnotationViewDragState, fromOldState oldState: MKAnnotationViewDragState) {
 //        switch (newState) {
 //        case .Starting:
 //            view.dragState = .Dragging
@@ -270,7 +198,24 @@ class MapViewController: UIViewController, MKMapViewDelegate {
 //            view.dragState = .None
 //        default: break
 //        }
-//    }
+        
+        switch (newState) {
+        case .Starting:
+            
+            if let startPin = view.annotation as? Pin {
+                //delete the old photos here
+                //or other code
+            }
+            
+        case .Ending, .Canceling:
+            
+            if let endPin = view.annotation as? Pin {
+                //get new photos
+                //or other code
+            }
+        default: break
+        }
+  }
     
     func mapView(mapView: MKMapView, regionDidChangeAnimated animated: Bool) {
         _ = makeMapDictionary()
@@ -322,9 +267,6 @@ class MapViewController: UIViewController, MKMapViewDelegate {
             print("Error: \(error)")
         }
         if let collectionEditor = segue.destinationViewController as? CollectionEditor {
-//            let coordinatesText = String(pin.coordinate.latitude) + ", " + String(pin.coordinate.longitude)
-//            collectionEditor.coordinatesText = coordinatesText
-
             collectionEditor.coordinates = pin.coordinate
             print("pin.coordinate: \(pin.coordinate)")
             if currentPin != nil {
@@ -377,11 +319,9 @@ class MapViewController: UIViewController, MKMapViewDelegate {
         deleteMapInfo()
         _ = NSFetchRequest(entityName: "MapViewInfo")
 //        do {
-            //var infoArray = try sharedContext.executeFetchRequest(fetchRequest) as! [MapViewInfo]
-            //if infoArray.count == 0 {
-                //print("count was 0")
+
                 let mapInfo = NSEntityDescription.insertNewObjectForEntityForName("MapViewInfo", inManagedObjectContext: sharedContext) as! MapViewInfo
-                //NSEntityDescription.insertNewObjectForEntityForName("MapViewInfo", inManagedObjectContext: sharedContext) as! MapViewInfo
+
                 mapInfo.lat = NSNumber(double: map.centerCoordinate.latitude)
                 mapInfo.lon = NSNumber(double: map.centerCoordinate.longitude)
                 mapInfo.latDelta = NSNumber(double: map.region.span.latitudeDelta)
@@ -390,7 +330,6 @@ class MapViewController: UIViewController, MKMapViewDelegate {
 //            } else {
 //                print("Non-zero count: \(infoArray.count)")
 //            }
-            //infoArray[0] = MapViewInfo(dictionary: info, context: sharedContext)
             CoreDataStackManager.sharedInstance().saveContext()
         
 //        } catch let error as NSError {

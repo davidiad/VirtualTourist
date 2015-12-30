@@ -47,6 +47,14 @@ class FlickrClient: NSObject {
     var photoDownloadCounter: Int = 21 //default to 21 images -- will be updated each time a collection view is opened.
     
     // A bit awkward to use getTotal to toggle whether to get the total # of photos, or to get a set of 21 photos. But avoids repeat of most of the code in this func. Is there a better way?
+    // fist time calling this, accuracy is set to 16. If no photos returned, reduce accuracy by 1 and call again until at least 1 photo is returned
+    /* Flickr.api accuracy reference. Probably go no lower than about 5 (what's the point of searching the entire World from 1 coordinate?)
+    World level is 1
+    Country is ~3
+    Region is ~6
+    City is ~11
+    Street is ~16
+    */
     func getFlickrImagesForCoordinates(coordinates: CLLocationCoordinate2D, getTotal: Bool, completion: (success: Bool, error: NSError?) -> Void) {
         let lat = String(coordinates.latitude)
         let lon = String(coordinates.longitude)

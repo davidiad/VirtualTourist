@@ -37,7 +37,10 @@ class Photo: NSManagedObject {
         }
         
         set {
-            VirtualTouristModel.Caches.imageCache.storeImage(newValue, withIdentifier: url!)
+            //TODO: After New Collection button disable/enable is implemented, I think this if let can be removed.
+            if let newUrl = url { // add this line to prevent errors when New Collection button is pressed before there is a URL
+                VirtualTouristModel.Caches.imageCache.storeImage(newValue, withIdentifier: newUrl)
+            }
         }
     }
 
