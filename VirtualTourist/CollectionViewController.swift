@@ -36,7 +36,6 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        print("current pin: \(currentPin)")
 
         // Uncomment the following line to preserve selection between presentations
         // self.clearsSelectionOnViewWillAppear = false
@@ -82,7 +81,7 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
 //    }
     
     func collectionView(collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, insetForSectionAtIndex section: Int) -> UIEdgeInsets {
-        let frame : CGRect = self.view.frame
+        //let frame : CGRect = self.view.frame
         let margin  = CGFloat(5)//(frame.width - 90 * 3) / 6.0
         return UIEdgeInsetsMake(2, margin, 2, margin) // margin between cells
     }
@@ -129,12 +128,15 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
 //            print("no photos here yet")
 //            return 21 // if there are no photos ready, still, display the collection view with 21 empty cells
 //        }
-        return (currentPin?.photos.count)!
+        let numberOfItems = currentPin?.photos.count
+        FlickrClient.sharedInstance.photoDownloadCounter = numberOfItems!
+        return numberOfItems!
+        //return (currentPin?.photos.count)!
     }
 
     override func collectionView(collectionView: UICollectionView, cellForItemAtIndexPath indexPath: NSIndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCellWithReuseIdentifier(reuseIdentifier, forIndexPath: indexPath) as! CollectionViewCell
-        
+        //cell.image = nil // reset the image to nil when cell is reused. In the cell class, we use didSet to check whether the image is not nil, and therefore we have a 'new' (if recycled) cell.
         configureCell(cell, indexPath: indexPath)
     
 //        // Configure the cell
@@ -153,19 +155,22 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
     // Configure cell for image cache etc
 //    func configureCell(cell: TaskCancelingTableViewCell, movie: Movie) {
     func configureCell(cell: CollectionViewCell, indexPath: NSIndexPath) {
-        var photoImage = UIImage(named: "puppy")
-//        let imageView = UIImageView()
-//        imageView.contentMode = UIViewContentMode.ScaleToFill
-//        imageView.frame = CGRect(x: 2, y: 2, width: csize.width - 4, height: csize.height - 4)
-        
+        //var photoImage = UIImage(named: "puppy")
+        var photoImage: UIImage?
         let photo = self.fetchedResultsController.objectAtIndexPath(indexPath) as! Photo
-        //let url = photo.url
         // Set the Photo Image
         if photo.url == nil || photo.url == "" {
-            photoImage = UIImage(named: "puppy")
+            //photoImage = UIImage(named: "puppy")
+
+      
         } else if photo.photoImage != nil {
             // photoImage is from the cache
-            photoImage = photo.photoImage
+            photoImage = photo.photoImage!
+            // Altho this image came from cache, still need to decrement the counter, so all are accounted for
+            //TODO: rather than decrement the counter here (where it gets called too many times, extra times when the collection view is scrolled), need to find out how many of the cells are in cache or on 'disk', so the amount to decrement accounts for them. Also, downloads don't seem to happen at all for cells that are scrolled out of view (e.g. at the bottom). So it seems that downloading needs to be done in the background so that we know when all are downloaded, and then the button is ready to be enabled
+                //TODO: also, how do we know when each individual cell is download, so acitivty indicator can be turned off?
+            //FlickrClient.sharedInstance.photoDownloadCounter -= 1
+            self.sendInfoToButton()
         } else { // "This is the interesting case."- Jason. The Photo has an image name, but it is not downloaded yet.
             
             // Start the task that will eventually download the image
@@ -185,19 +190,27 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
                     // Will this be handled by FetchedResultsController?
 //                    // update the cell later, on the main thread
 //                    
+                    //FlickrClient.sharedInstance.photoDownloadCounter -= 1
+                    self.sendInfoToButton()
                     dispatch_async(dispatch_get_main_queue()) {
                         cell.cellView.image = image
+                        cell.image = image
                     }
                 }
             }
-            
-            // This is the custom property on this cell. See TaskCancelingTableViewCell.swift for details.
-            //cell.taskToCancelifCellIsReused = task
+            //TODO: Stop activity indicator when downloads are complete
+            //TODO: New Collection button is grayed out until fetch is complete (or download is complete? check specs)
+
+            // This is the custom property on this cell. See CollectionViewCell.swift for details.
+            cell.taskToCancelifCellIsReused = task
         }
         
         // Configure the cell
         cell.cellView.contentMode = UIViewContentMode.ScaleToFill
-        cell.cellView.image = photoImage
+        if photoImage != nil {
+            cell.image = photoImage
+            cell.cellView.image = cell.image
+        }
     }
 
     // MARK: UICollectionViewDelegate
@@ -227,6 +240,11 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
     
     func sendInfoToButton () {
         if let parentVC = self.parentViewController as? CollectionEditor {
+            if FlickrClient.sharedInstance.photoDownloadCounter <= 0 {
+                parentVC.bottomButton.enabled = true
+                print("# of completed dloads: \(FlickrClient.sharedInstance.photoDownloadCounter)")
+                print("ENABLE THE BUTTON!")
+            }
             if selectedIndexes.count > 0 {
                 parentVC.bottomButton.title = "Remove Selected Photos"
             } else {

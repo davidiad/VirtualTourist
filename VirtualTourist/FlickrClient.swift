@@ -36,8 +36,6 @@ let NO_JSON_CALLBACK = "1"
 
 let PER_PAGE_DEFAULT = 21
 
-var totalPhotos: Int?
-
 class FlickrClient: NSObject {
     
     static let sharedInstance = FlickrClient() // makes this class a singleton
@@ -45,6 +43,8 @@ class FlickrClient: NSObject {
     lazy var sharedContext = {
         CoreDataStackManager.sharedInstance().managedObjectContext
     }()
+    var totalPhotos: Int?
+    var photoDownloadCounter: Int = 21 //default to 21 images -- will be updated each time a collection view is opened.
     
     // A bit awkward to use getTotal to toggle whether to get the total # of photos, or to get a set of 21 photos. But avoids repeat of most of the code in this func. Is there a better way?
     func getFlickrImagesForCoordinates(coordinates: CLLocationCoordinate2D, getTotal: Bool, completion: (success: Bool, error: NSError?) -> Void) {
@@ -56,10 +56,8 @@ class FlickrClient: NSObject {
         var per_page = String(PER_PAGE_DEFAULT)
         var page = "1"
         
-        print("ABOUT TO ENTER TOTAL PHOTOS")
         // calculate which page to use
         if totalPhotos != nil {
-            print("TOTAL: \(totalPhotos)")
             if totalPhotos > PER_PAGE_DEFAULT {
                 if totalPhotos > 4000 {
                     totalPhotos = 4000
@@ -166,8 +164,8 @@ class FlickrClient: NSObject {
                         print("Cannot find key 'photos' in \(parsedResult)")
                         return
                 }
-                totalPhotos = Int((photosDictionary["total"] as? String)!)
-                if totalPhotos == nil {
+                self.totalPhotos = Int((photosDictionary["total"] as? String)!)
+                if self.totalPhotos == nil {
                     dispatch_async(dispatch_get_main_queue(), {
                         self.setUIEnabled(enabled: true)
                     })
@@ -175,7 +173,7 @@ class FlickrClient: NSObject {
                     return
                     
                 } else {
-                    print("total: \(totalPhotos)")
+                    print("total: \(self.totalPhotos)")
                     
                 }
                 
@@ -200,7 +198,6 @@ class FlickrClient: NSObject {
                 
                 // Put all of the url strings into an array, and pass that into the data model to store
                 self.model.photoArray?.removeAll()
-                print("photosDict: \(photosDictionary)")
                 for photo in photoArray {
                     guard let imageUrlString = photo["url_m"] as? String else {
                         dispatch_async(dispatch_get_main_queue(), {
@@ -247,7 +244,6 @@ class FlickrClient: NSObject {
     // MARK: - All purpose task method for images
     
     func taskForImage(filePath: String, completionHandler: (imageData: NSData?, error: NSError?) ->  Void) -> NSURLSessionTask {
-        
         let url = NSURL(string: filePath)!
         let request = NSURLRequest(URL: url)
         let session = NSURLSession.sharedSession()
@@ -257,14 +253,41 @@ class FlickrClient: NSObject {
             if let error = downloadError {
                 completionHandler(imageData: nil, error: error)
             } else {
+                print("A download completed")
+//                self.photoDownloadCounter -= 1
+//                if self.photoDownloadCounter <= 0 {
+//                    // reset counter
+//                    self.photoDownloadCounter = 21
+//                    // send notice that bottomButton can now be enabled
+//                }
                 completionHandler(imageData: data, error: nil)
             }
         }
-        
         task.resume()
         
         return task
     }
+    
+    // SOme possible code for background downloading of images
+//    func backgroundFetch(){
+//        let qualityOfServiceClass = QOS_CLASS_BACKGROUND
+//        let backgroundQueue = dispatch_get_global_queue(qualityOfServiceClass, 0)
+//        
+//        //dispatch in background HERE
+//        dispatch_async(backgroundQueue) {
+//            let path = self.directoryPath()
+//            let pathArray = [path, "\(self.id)"]
+//            let filePath = NSURL.fileURLWithPathComponents(pathArray)!
+//            
+//            let fileManager = NSFileManager()
+//            
+//            if fileManager.fileExistsAtPath(filePath.path!) == false {
+//                //download to documents directory, if image doesn't exist yet
+//                let downloadedImage = NSData(contentsOfURL: NSURL(string:self.url)!)
+//                downloadedImage?.writeToURL(filePath, atomically: true)
+//            }
+//        }
+//    }
 
     // Configure UI
     
@@ -399,7 +422,6 @@ class FlickrClient: NSObject {
             
             // Put all of the url strings into an array, and pass that into the data model to store
             self.model.photoArray?.removeAll()
-            print("photosDict: \(photosDictionary)")
             for photo in photoArray {
                 guard let imageUrlString = photo["url_m"] as? String else {
                     dispatch_async(dispatch_get_main_queue(), {
@@ -449,18 +471,3 @@ class FlickrClient: NSObject {
     */
 }
 
-extension UIImageView {
-//    
-//    public func imageFromUrl(urlString: String) {
-//        if let url = NSURL(string: urlString) {
-//            let request = NSURLRequest(URL: url)
-//            NSURLConnection.sendAsynchronousRequest(request, queue: NSOperationQueue.mainQueue()) {
-//                (response: NSURLResponse?, data: NSData?, error: NSError?) -> Void in
-//                if let imageData = data as NSData? {
-//                    self.image = UIImage(data: imageData)
-//                }
-//            }
-//        }
-//    }
-    
-}

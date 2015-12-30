@@ -128,9 +128,6 @@ class MapViewController: UIViewController, MKMapViewDelegate {
                 let coordinate = CLLocationCoordinate2D(latitude: lat, longitude: lon)
                 let name = String(pin.objectID.URIRepresentation())   //String(lat) + ", " + String(lon)
                 
-                print("objectID: \(pin.objectID)")
-                print("URI: \(pin.objectID.URIRepresentation())")
-                print("String(URI): \(String(pin.objectID.URIRepresentation()))")
                 //sharedContext.persistentStoreCoordinator!.managedObjectIDForURIRepresentation(pin.objectID)
                 // Here we create the annotation and set its coordiate, title, and subtitle properties
                 let annotation = MKPointAnnotation()
@@ -276,12 +273,8 @@ class MapViewController: UIViewController, MKMapViewDelegate {
 //    }
     
     func mapView(mapView: MKMapView, regionDidChangeAnimated animated: Bool) {
-        print("regionChanged")
-        let info = makeMapDictionary()
-        print(info)
+        _ = makeMapDictionary()
         saveMapInfo()
-
-        //TODO: save this info into core data, replacing the existing object if there is one
         CoreDataStackManager.sharedInstance().saveContext()
     }
     
@@ -303,6 +296,7 @@ class MapViewController: UIViewController, MKMapViewDelegate {
     // Use this "select" function to tap the pin
     func mapView(mapView: MKMapView, didSelectAnnotationView view: MKAnnotationView) {
         saveMapInfo()
+        /* I see no need to getFlickrImages again. They should already be stored, when the pin was added, whether this is a brand new pin, or a pre-existing one. But are the photos downloaded at this point?
         model.photoArray?.removeAll() // ensure that we don't see images from a previous pin by deleting them
         //TODO: Should be able to delete this photoArray, and get images directly from core data
         flickr.getFlickrImagesForCoordinates((view.annotation?.coordinate)!, getTotal: true) { success, error in
@@ -312,7 +306,7 @@ class MapViewController: UIViewController, MKMapViewDelegate {
             if success {
                 print("Flickr Success")
             }
-        }
+        }*/
         self.performSegueWithIdentifier("fromMap", sender: view.annotation)
     }
     

@@ -62,7 +62,7 @@
                                 <rect key="frame" x="0.0" y="556" width="600" height="44"/>
                                 <items>
                                     <barButtonItem style="plain" systemItem="flexibleSpace" id="YWD-9N-mHy"/>
-                                    <barButtonItem title="Button" id="l1L-HW-JAC">
+                                    <barButtonItem enabled="NO" title="Button" id="l1L-HW-JAC">
                                         <connections>
                                             <action selector="bottomButtonTapped:" destination="B5l-87-boa" id="Ws7-ye-Uky"/>
                                         </connections>

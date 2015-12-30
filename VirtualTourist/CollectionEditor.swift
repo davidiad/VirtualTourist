@@ -32,13 +32,9 @@ class CollectionEditor: UIViewController, MKMapViewDelegate, UICollectionViewDel
     override func viewDidLoad() {
         
         super.viewDidLoad()
-        print("Collection Editor currentPin: \(currentPin)")
         mapView.delegate = self
         let span = MKCoordinateSpanMake(0.25, 0.25)
-        //coordinatesLabel.text = coordinatesText
         if coordinates != nil {
-            //let coordinatesText = String(coordinates?.latitude) + ", " + String(coordinates?.longitude)
-            //coordinatesLabel.text! = coordinatesText
             mapView.centerCoordinate = coordinates!
             let region = MKCoordinateRegionMake(coordinates!, span)
             mapView.region = region
@@ -63,7 +59,6 @@ class CollectionEditor: UIViewController, MKMapViewDelegate, UICollectionViewDel
     }
     
     func mapView(mapView: MKMapView, viewForAnnotation annotation: MKAnnotation) -> MKAnnotationView? {
-        //print("in vfa")
         let reuseId = "pin"
         
         var pinView = mapView.dequeueReusableAnnotationViewWithIdentifier(reuseId) as? MKPinAnnotationView
@@ -129,7 +124,6 @@ class CollectionEditor: UIViewController, MKMapViewDelegate, UICollectionViewDel
                 }
             }
             CoreDataStackManager.sharedInstance().saveContext()
-
         }
     }
     
