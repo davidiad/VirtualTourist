@@ -22,18 +22,27 @@ class Pin: NSManagedObject, MKAnnotation {
     @NSManaged var pinID: NSNumber?
     @NSManaged var photos: [Photo]
     
+//    private var _coordinate: CLLocationCoordinate2D = CLLocationCoordinate2D(latitude: 0, longitude: 0)
+//    
+//    var coordinate: CLLocationCoordinate2D {
+//        get {
+//            return _coordinate
+//        }
+//    }
+    
     var coordinate: CLLocationCoordinate2D {
         set (newValue) {
             lat = newValue.latitude
             lon = newValue.longitude
         }
-        
         get {
             return CLLocationCoordinate2D(latitude: Double(lat!), longitude: Double(lon!))
         }
     }
     
-    // standard Core Data init method.
+    var title: String?
+    
+    // standard Core Data init method
     override init(entity: NSEntityDescription, insertIntoManagedObjectContext context: NSManagedObjectContext?) {
         super.init(entity: entity, insertIntoManagedObjectContext: context)
     }
@@ -56,6 +65,10 @@ class Pin: NSManagedObject, MKAnnotation {
         lon = dictionary[Keys.Lon] as? NSNumber
     }
     
-
+//    func setCoordinate(newCoordinate: CLLocationCoordinate2D) {
+//        willChangeValueForKey("coordinate")
+//        self._coordinate = newCoordinate
+//        didChangeValueForKey("coordinate")
+//    }
 
 }

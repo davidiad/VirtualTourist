@@ -32,6 +32,7 @@ class MapViewController: UIViewController, MKMapViewDelegate {
     let flickr = FlickrClient.sharedInstance
     
     var currentPin: Pin?
+    var pinDeselected: Bool = true // used to determine when to drag a new pin(before letting go), and when to segue
     
     @IBOutlet weak var map: MKMapView!
     
@@ -53,27 +54,55 @@ class MapViewController: UIViewController, MKMapViewDelegate {
         displayPins(pinArray)
     }
     
-    func addAnnotation(gestureRecognizer:UIGestureRecognizer){
+    func addAnnotation(gestureRecognizer:UIGestureRecognizer) {
+        let touchPoint = gestureRecognizer.locationInView(map)
+        let newCoordinates = map.convertPoint(touchPoint, toCoordinateFromView: map)
         if gestureRecognizer.state == UIGestureRecognizerState.Began { // allows only 1 pin per touch
-            let touchPoint = gestureRecognizer.locationInView(map)
-            let newCoordinates = map.convertPoint(touchPoint, toCoordinateFromView: map)
-            let annotation = MKPointAnnotation()
-            annotation.coordinate = newCoordinates
-            map.addAnnotation(annotation)
+
+            //pinDeselected = false
             
-            // Add a new Pin object to data store
-            // First, create a dictionary to init the Pin
-            let pinDictionary = [
-                "lat": NSNumber(double: newCoordinates.latitude),
-                "lon": NSNumber(double: newCoordinates.longitude)
-            ]
+//            switch gestureRecognizer.state {
+//            case .Began:
+                print("began gesture state")
+                // Add a new Pin object to data store
+                // First, create a dictionary to init the Pin
+                let pinDictionary = [
+                    "lat": NSNumber(double: newCoordinates.latitude),
+                    "lon": NSNumber(double: newCoordinates.longitude)
+                ]
+                currentPin = Pin(dictionary: pinDictionary, context: sharedContext)
+                currentPin?.coordinate = newCoordinates
+                //currentPin!.setCoordinate(newCoordinates)
+                map.addAnnotation(currentPin!)
+
+                //let pin = Pin(location: newCoordinates, context: self.sharedContext)
+//            }
+
             
-            currentPin = Pin(dictionary: pinDictionary, context: sharedContext)
+            
             // in order to get a permanent ID, can save the Pin into the context
             CoreDataStackManager.sharedInstance().saveContext()
-            annotation.title = String(currentPin!.objectID.URIRepresentation())
+            //TODO: use pinID rather than title to store objectID
+            currentPin?.title = String(currentPin!.objectID.URIRepresentation())
             
-            
+            map.addAnnotation(currentPin!) //TODO: do we need to unwrap more safely here?
+        }
+//        else if gestureRecognizer.state == .Changed {
+//            print("CHANGE!")
+//            //Check to make sure the pin has dropped
+//            if currentPin != nil {
+//                
+//                //Get the coordinates from the map where we dragged over
+//                let touchPoint: CGPoint = gestureRecognizer.locationInView(map)
+//                let newCoordinates = map.convertPoint(touchPoint, toCoordinateFromView: map)
+//                
+//                //Update the pin view
+//                dispatch_async(dispatch_get_main_queue(), {
+//                    self.currentPin!.coordinate = newCoordinates
+//                })
+//            }
+//        }
+        
             // fetch the photo url's for this Pin
             flickr.getFlickrImagesForCoordinates(newCoordinates, getTotal: true) { success, error in
                 print("getTotal was true")
@@ -100,14 +129,41 @@ class MapViewController: UIViewController, MKMapViewDelegate {
                     print("Error in getting Flickr Images: \(error)")
                 }
             }
+
+        
+//            if gestureRecognizer.state == UIGestureRecognizerState.Ended {
+//                let touchPoint = gestureRecognizer.locationInView(map)
+//                let newCoordinates = map.convertPoint(touchPoint, toCoordinateFromView: map)
+//                print(newCoordinates)
+//            }
             CoreDataStackManager.sharedInstance().saveContext()
-        }
+//        }
+    
 //        if (annotation.state == UIGestureRecognizerState.Ended)
 //        {
 //            [self.mapView removeGestureRecognizer:sender];
 //        }
     }
     
+    func displayPins(pinArray: [Pin]) {
+        
+        for pin in pinArray {
+            print("In displayPins: \(pin.coordinate)")
+            
+//            let lat = CLLocationDegrees(pin.lat!)
+//            let lon = CLLocationDegrees(pin.lon!)
+            
+
+            let name = String(pin.objectID.URIRepresentation())   //String(lat) + ", " + String(lon)
+            
+            pin.title = name  // eventually should be able to move this value into a stored property of Pin
+        }
+        
+        // When the array is complete, we add the annotations to the map.
+        map.addAnnotations(pinArray)
+    }
+    
+/* The displayPins func before Pin was subclassed to MKAnnotation (as well as NSManagedObject)
     func displayPins(pinArray: [Pin]) {
             
             // We will create an MKPointAnnotation for each dictionary in "locations". The
@@ -135,7 +191,7 @@ class MapViewController: UIViewController, MKMapViewDelegate {
             // When the array is complete, we add the annotations to the map.
             map.addAnnotations(annotations)
     }
-
+*/
     
 //    func tapPin(gestureRecognizer: UITapGestureRecognizer) {
 //        let pinView = gestureRecognizer.view as! MKAnnotation
@@ -173,11 +229,11 @@ class MapViewController: UIViewController, MKMapViewDelegate {
         
         if pinView == nil {
             pinView = MKPinAnnotationView(annotation: annotation, reuseIdentifier: reuseId)
-            pinView!.canShowCallout = true
+            pinView!.canShowCallout = false
             pinView!.pinTintColor = UIColor.brownColor()
-            pinView!.rightCalloutAccessoryView = UIButton(type: .DetailDisclosure)
-            pinView?.animatesDrop = false
-            //pinView?.draggable = true // only works for after the pin is place (not what we're doing)
+            //pinView!.rightCalloutAccessoryView = UIButton(type: .DetailDisclosure)
+            pinView?.animatesDrop = true
+            pinView?.draggable = true // only works for after the pin is place (not what we're doing)
         }
         else {
             pinView!.annotation = annotation
@@ -203,6 +259,7 @@ class MapViewController: UIViewController, MKMapViewDelegate {
         case .Starting:
             
             if let startPin = view.annotation as? Pin {
+                print("STARTING")
                 //delete the old photos here
                 //or other code
             }
@@ -210,6 +267,7 @@ class MapViewController: UIViewController, MKMapViewDelegate {
         case .Ending, .Canceling:
             
             if let endPin = view.annotation as? Pin {
+                print("END OR CANCELLING")
                 //get new photos
                 //or other code
             }
@@ -252,14 +310,22 @@ class MapViewController: UIViewController, MKMapViewDelegate {
                 print("Flickr Success")
             }
         }*/
-        self.performSegueWithIdentifier("fromMap", sender: view.annotation)
+        //if self.mapView(map, didDeselectAnnotationView: view) {
+        if pinDeselected {
+            self.performSegueWithIdentifier("fromMap", sender: view.annotation)
+        }
+        //}
+    }
+    
+    func mapView(mapView: MKMapView, didDeselectAnnotationView view: MKAnnotationView) {
+        pinDeselected = true
     }
     
     override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
         //TODO: Not associating this pin with a managed object, therefore Pin doesn't get sent, and crash when Pin optional is force-unwrapped in CollectionViewController. Only happens when first launching app, but with saved core data (?)
-        let pin = sender as! MKAnnotation
+        let pin = sender as! Pin
         let pinIDString = pin.title!
-        let pinURI = NSURL(string: pinIDString!)
+        let pinURI = NSURL(string: pinIDString)
         let pinID = sharedContext.persistentStoreCoordinator?.managedObjectIDForURIRepresentation(pinURI!)
         do {
             currentPin = try sharedContext.existingObjectWithID(pinID!) as? Pin
@@ -286,7 +352,6 @@ class MapViewController: UIViewController, MKMapViewDelegate {
         let fetchRequest = NSFetchRequest(entityName: "Pin")
         do {
             pinArray = try sharedContext.executeFetchRequest(fetchRequest) as! [Pin]
-            print("Pins: \(pinArray.count)")
         } catch let error as NSError {
             print("Error in fetchPins request: \(error)")
         }
