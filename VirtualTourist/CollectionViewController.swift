@@ -133,10 +133,10 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
 //            print("no photos here yet")
 //            return 21 // if there are no photos ready, still, display the collection view with 21 empty cells
 //        }
-        let numberOfItems = currentPin?.photos.count
-        FlickrClient.sharedInstance.photoDownloadCounter = numberOfItems!
-        return numberOfItems!
-        //return (currentPin?.photos.count)!
+        print("COUNT: \(currentPin?.photos.count)")
+        return (currentPin?.photos.count)!
+//        FlickrClient.sharedInstance.photoDownloadCounter = numberOfItems!
+//        return numberOfItems!
     }
 
     override func collectionView(collectionView: UICollectionView, cellForItemAtIndexPath indexPath: NSIndexPath) -> UICollectionViewCell {
@@ -245,11 +245,11 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
     
     func sendInfoToButton () {
         if let parentVC = self.parentViewController as? CollectionEditor {
-            if FlickrClient.sharedInstance.photoDownloadCounter <= 0 {
-                parentVC.bottomButton.enabled = true
-                print("# of completed dloads: \(FlickrClient.sharedInstance.photoDownloadCounter)")
-                print("ENABLE THE BUTTON!")
-            }
+//            if FlickrClient.sharedInstance.photoDownloadCounter <= 0 {
+//                parentVC.bottomButton.enabled = true
+//                print("# of completed dloads: \(FlickrClient.sharedInstance.photoDownloadCounter)")
+//                print("ENABLE THE BUTTON!")
+//            }
             if selectedIndexes.count > 0 {
                 parentVC.bottomButton.title = "Remove Selected Photos"
             } else {

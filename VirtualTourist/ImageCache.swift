@@ -32,7 +32,7 @@ class ImageCache {
         
         // First try the memory cache
         if let image = inMemoryCache.objectForKey(path) as? UIImage {
-            //print("found an image in Memory cache: \(path)")
+            print("found an image in Memory cache: \(path)")
             return image
         }
         

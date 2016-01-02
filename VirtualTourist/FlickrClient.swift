@@ -44,7 +44,7 @@ class FlickrClient: NSObject {
         CoreDataStackManager.sharedInstance().managedObjectContext
     }()
     var totalPhotos: Int?
-    var photoDownloadCounter: Int = 21 //default to 21 images -- will be updated each time a collection view is opened.
+    //var photoDownloadCounter: Int = 21 //default to 21 images -- will be updated each time a collection view is opened.
     
     // A bit awkward to use getTotal to toggle whether to get the total # of photos, or to get a set of 21 photos. But avoids repeat of most of the code in this func. Is there a better way?
     // fist time calling this, accuracy is set to 16. If no photos returned, reduce accuracy by 1 and call again until at least 1 photo is returned
@@ -67,6 +67,8 @@ class FlickrClient: NSObject {
         // calculate which page to use
         if totalPhotos != nil {
             if totalPhotos > PER_PAGE_DEFAULT {
+                // Even though the "total" may be over 4000, Flickr will only let you access the first 4000
+                // So, limit the total to 4000, otherwise they send you duplicate photos
                 if totalPhotos > 4000 {
                     totalPhotos = 4000
                 }
@@ -162,7 +164,7 @@ class FlickrClient: NSObject {
                 print("Flickr API returned an error. See error code and message in \(parsedResult)")
                 return
             }
-            if getTotal {
+            if getTotal { // This time, we are just getting the total # of photos, not fetching any of them
                 // parse the total # of photos available
                 guard let photosDictionary = parsedResult["photos"] as? NSDictionary
                 else {
@@ -182,17 +184,16 @@ class FlickrClient: NSObject {
                     
                 } else {
                     print("total: \(self.totalPhotos)")
-                    
                 }
                 
-//                // calculate which page to use
-//                if totalPhotos < 22 {
-//                    page = "1"
-//                } else {
-//                    let pages = Int(totalPhotos / 21)
-//                    let randomPageIndex = Int(arc4random_uniform(UInt32(pages)))
-//                    page = String(randomPageIndex)
-//                }
+                // calculate which page to use
+                if self.totalPhotos < 22 {
+                    page = "1"
+                } else {
+                    let pages = Int(self.totalPhotos! / 21)
+                    let randomPageIndex = Int(arc4random_uniform(UInt32(pages)))
+                    page = String(randomPageIndex)
+                }
             } else { // We are getting the photos this time, not just the total # of photos
                 /* GUARD: Are the "photos" and "photo" keys in our result? */
                 guard let photosDictionary = parsedResult["photos"] as? NSDictionary,
@@ -261,7 +262,7 @@ class FlickrClient: NSObject {
             if let error = downloadError {
                 completionHandler(imageData: nil, error: error)
             } else {
-                print("A download completed")
+                //print("A download completed")
 //                self.photoDownloadCounter -= 1
 //                if self.photoDownloadCounter <= 0 {
 //                    // reset counter

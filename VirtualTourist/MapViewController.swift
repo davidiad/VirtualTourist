@@ -85,8 +85,8 @@ class MapViewController: UIViewController, MKMapViewDelegate {
             //TODO: use pinID rather than title to store objectID
             currentPin?.title = String(currentPin!.objectID.URIRepresentation())
             
-            map.addAnnotation(currentPin!) //TODO: do we need to unwrap more safely here?
-        }
+            //map.addAnnotation(currentPin!) //TODO: do we need to unwrap more safely here?
+        //}
 //        else if gestureRecognizer.state == .Changed {
 //            print("CHANGE!")
 //            //Check to make sure the pin has dropped
@@ -136,6 +136,7 @@ class MapViewController: UIViewController, MKMapViewDelegate {
 //                let newCoordinates = map.convertPoint(touchPoint, toCoordinateFromView: map)
 //                print(newCoordinates)
 //            }
+        }
             CoreDataStackManager.sharedInstance().saveContext()
 //        }
     
@@ -233,7 +234,7 @@ class MapViewController: UIViewController, MKMapViewDelegate {
             pinView!.pinTintColor = UIColor.brownColor()
             //pinView!.rightCalloutAccessoryView = UIButton(type: .DetailDisclosure)
             pinView?.animatesDrop = true
-            pinView?.draggable = true // only works for after the pin is place (not what we're doing)
+            pinView?.draggable = false // only works for after the pin is place (not what we're doing)
         }
         else {
             pinView!.annotation = annotation
@@ -246,6 +247,8 @@ class MapViewController: UIViewController, MKMapViewDelegate {
         return pinView
     }
     
+/*
+// This func lets dragging work, but only AFTER pin is dropped.
     func mapView(mapView: MKMapView, annotationView view: MKAnnotationView, didChangeDragState newState: MKAnnotationViewDragState, fromOldState oldState: MKAnnotationViewDragState) {
 //        switch (newState) {
 //        case .Starting:
@@ -274,6 +277,7 @@ class MapViewController: UIViewController, MKMapViewDelegate {
         default: break
         }
   }
+*/
     
     func mapView(mapView: MKMapView, regionDidChangeAnimated animated: Bool) {
         _ = makeMapDictionary()

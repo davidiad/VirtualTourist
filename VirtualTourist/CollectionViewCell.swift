@@ -51,7 +51,7 @@ class CollectionViewCell: UICollectionViewCell {
     var image: UIImage? {
         didSet {
             if oldValue == nil {
-                print("An image was set and I'm a cell!")
+                //print("An image was set and I'm a cell!")
             }
         }
     }

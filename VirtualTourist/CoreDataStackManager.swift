@@ -17,6 +17,7 @@ import CoreData
  *
  */
 
+//TODO: rename below
 private let SQLITE_FILE_NAME = "FavoriteActors.sqlite"
 
 class CoreDataStackManager {
