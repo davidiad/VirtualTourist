@@ -66,6 +66,12 @@ class MapViewController: UIViewController, MKMapViewDelegate {
             //let pin = Pin(location: newCoordinates, context: self.sharedContext)
             //            }
             
+//            // in change state
+//            //to use KVO
+//            currentPin?.willChangeValueForKey("coordinate")
+//            // change coordinate to new location
+//            currentPin?.coordinate = newCoordinates
+//            currentPin?.didChangeValueForKey("coordinate")
             
             
             // in order to get a permanent ID, can save the Pin into the context
@@ -90,6 +96,14 @@ class MapViewController: UIViewController, MKMapViewDelegate {
             //                })
             //            }
             //        }
+            
+        } else if gestureRecognizer.state == UIGestureRecognizerState.Changed {
+            // in change state
+            //to use KVO
+            currentPin?.willChangeValueForKey("coordinate")
+            // change coordinate to new location
+            currentPin?.coordinate = newCoordinates
+            currentPin?.didChangeValueForKey("coordinate")
         } else if gestureRecognizer.state == UIGestureRecognizerState.Ended {
             // fetch the photo url's for this Pin
             flickr.getFlickrImagesForCoordinates(newCoordinates, getTotal: true) { success, error in
