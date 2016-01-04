@@ -56,6 +56,14 @@ class CollectionViewCell: UICollectionViewCell {
         }
     }
     
+    func setPhoto(photo: Photo) {
+        if let downloadedImage = cellView.image {
+            print("cellView has an image!")
+        } else {
+            print("No photo yet!")
+        }
+    }
+    
     
     
     //TODO: Can the cell detect when its own image has been downloaded, and send a notification?

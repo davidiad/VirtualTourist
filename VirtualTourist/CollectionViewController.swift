@@ -160,9 +160,12 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
     // Configure cell for image cache etc
 //    func configureCell(cell: TaskCancelingTableViewCell, movie: Movie) {
     func configureCell(cell: CollectionViewCell, indexPath: NSIndexPath) {
+        
         //var photoImage = UIImage(named: "puppy")
         var photoImage: UIImage?
         let photo = self.fetchedResultsController.objectAtIndexPath(indexPath) as! Photo
+        
+        cell.setPhoto(photo)
         // Set the Photo Image
         if photo.url == nil || photo.url == "" {
             //photoImage = UIImage(named: "puppy")
