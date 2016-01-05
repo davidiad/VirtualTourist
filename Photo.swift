@@ -13,7 +13,7 @@ import UIKit
 
 class Photo: NSManagedObject {
 
-    @NSManaged var url: String?
+    @NSManaged var url: String? //TODO: not the best naming strategy to name a String a url. Better to name it something like filepath?
     @NSManaged var pin: NSManagedObject?
     
     // standard Core Data init method.
@@ -29,7 +29,8 @@ class Photo: NSManagedObject {
         
         url = dictionary[url!] as? String
     }
-    
+
+    /* Worked for memory cache, but not storing on hard drive with Simulator
     var photoImage: UIImage? {
         
         get {
@@ -43,7 +44,26 @@ class Photo: NSManagedObject {
             //}
         }
     }
+    */
     
-
+    // To fix issue with files not being stored with the full url as identifier.
+    // Probably slashes are causing the files to not be saved.
+    // So, using just the last part of the url as the identifier
+    var photoImage: UIImage? {
+        get {
+            let convertedUrl = NSURL(fileURLWithPath: url!)
+            let fileName = convertedUrl.lastPathComponent
+            
+            return VirtualTouristModel.Caches.imageCache.imageWithIdentifier(fileName!)
+        }
+        set {
+            
+            let convertedUrl = NSURL(fileURLWithPath: url!)
+            let fileName = convertedUrl.lastPathComponent
+            
+            VirtualTouristModel.Caches.imageCache.storeImage(newValue, withIdentifier: fileName!)
+            
+        }
+    }
 
 }
