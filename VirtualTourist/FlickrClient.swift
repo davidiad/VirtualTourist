@@ -55,14 +55,19 @@ class FlickrClient: NSObject {
     City is ~11
     Street is ~16
     */
-    func getFlickrImagesForCoordinates(coordinates: CLLocationCoordinate2D, getTotal: Bool, completion: (success: Bool, error: NSError?) -> Void) {
+    func getFlickrImagesForCoordinates(coordinates: CLLocationCoordinate2D, getTotal: Bool, var searchtext: String?,completion: (success: Bool, error: NSError?) -> Void) {
         let lat = String(coordinates.latitude)
         let lon = String(coordinates.longitude)
         
         //TODO: if no photos are found, reduce this accuracy number and try again
+        var text: String = ""
         var accuracy = "16"
         var per_page = String(PER_PAGE_DEFAULT)
         var page = "1"
+       //guard let _ = searchtext else { text = "" }
+        if searchtext != nil {
+            text = "\(searchtext!)"
+        }
         
         // calculate which page to use
         if totalPhotos != nil {
@@ -88,6 +93,7 @@ class FlickrClient: NSObject {
         let methodArguments = [
             "method": METHOD_NAME,
             "api_key": API_KEY,
+            "text": text,
             "accuracy": accuracy,
             "content_type": CONTENT_TYPE,
             "media": MEDIA,
@@ -262,13 +268,6 @@ class FlickrClient: NSObject {
             if let error = downloadError {
                 completionHandler(imageData: nil, error: error)
             } else {
-                //print("A download completed")
-//                self.photoDownloadCounter -= 1
-//                if self.photoDownloadCounter <= 0 {
-//                    // reset counter
-//                    self.photoDownloadCounter = 21
-//                    // send notice that bottomButton can now be enabled
-//                }
                 completionHandler(imageData: data, error: nil)
             }
         }

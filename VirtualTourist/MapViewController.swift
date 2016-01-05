@@ -63,39 +63,9 @@ class MapViewController: UIViewController, MKMapViewDelegate {
             //currentPin!.setCoordinate(newCoordinates)
             map.addAnnotation(currentPin!)
             
-            //let pin = Pin(location: newCoordinates, context: self.sharedContext)
-            //            }
-            
-//            // in change state
-//            //to use KVO
-//            currentPin?.willChangeValueForKey("coordinate")
-//            // change coordinate to new location
-//            currentPin?.coordinate = newCoordinates
-//            currentPin?.didChangeValueForKey("coordinate")
-            
-            
-            // in order to get a permanent ID, can save the Pin into the context
+            // in order to get a permanent ID, we can save the Pin into the context
             CoreDataStackManager.sharedInstance().saveContext()
-            //TODO: use pinID rather than title to store objectID
             currentPin?.title = String(currentPin!.objectID.URIRepresentation())
-            
-            //map.addAnnotation(currentPin!) //TODO: do we need to unwrap more safely here?
-            //}
-            //        else if gestureRecognizer.state == .Changed {
-            //            print("CHANGE!")
-            //            //Check to make sure the pin has dropped
-            //            if currentPin != nil {
-            //
-            //                //Get the coordinates from the map where we dragged over
-            //                let touchPoint: CGPoint = gestureRecognizer.locationInView(map)
-            //                let newCoordinates = map.convertPoint(touchPoint, toCoordinateFromView: map)
-            //
-            //                //Update the pin view
-            //                dispatch_async(dispatch_get_main_queue(), {
-            //                    self.currentPin!.coordinate = newCoordinates
-            //                })
-            //            }
-            //        }
             
         } else if gestureRecognizer.state == UIGestureRecognizerState.Changed {
             // in change state
@@ -106,10 +76,10 @@ class MapViewController: UIViewController, MKMapViewDelegate {
             currentPin?.didChangeValueForKey("coordinate")
         } else if gestureRecognizer.state == UIGestureRecognizerState.Ended {
             // fetch the photo url's for this Pin
-            flickr.getFlickrImagesForCoordinates(newCoordinates, getTotal: true) { success, error in
+            flickr.getFlickrImagesForCoordinates(newCoordinates, getTotal: true, searchtext: nil) { success, error in
                 print("getTotal was true")
             }
-            flickr.getFlickrImagesForCoordinates(newCoordinates, getTotal:  false) { success, error in
+            flickr.getFlickrImagesForCoordinates(newCoordinates, getTotal:  false, searchtext: nil) { success, error in
                 if success {
                     for url in self.model.photoArray! {
                         dispatch_async(dispatch_get_main_queue(), {
@@ -118,14 +88,32 @@ class MapViewController: UIViewController, MKMapViewDelegate {
                             photo.pin = self.currentPin
                             photo.url = url
                             
+                            /*// deprecated method to download image
                             let request = NSURLRequest(URL: NSURL(string: url)!)
                             NSURLConnection.sendAsynchronousRequest(request, queue: NSOperationQueue.mainQueue()) {
-                                (response: NSURLResponse?, data: NSData?, error: NSError?) -> Void in
-                                if let imageData = data as NSData? {
-                                    //self.image = UIImage(data: imageData)
+                            (response: NSURLResponse?, data: NSData?, error: NSError?) -> Void in
+                            if let imageData = data as NSData? {
+                            //self.image = UIImage(data: imageData)
+                            }
+                            }
+                            // */
+                            
+                            _ = FlickrClient.sharedInstance.taskForImage(photo.url!) { data, error in
+                                
+                                if let error = error {
+                                    print("Photo download error: \(error.localizedDescription)")
+                                }
+                                
+                                if let data = data {
+                                    // Create the image
+                                    let image = UIImage(data: data)
+                                    
+                                    // update the model, so that the information gets cached
+                                    photo.photoImage = image
                                 }
                             }
-                        })
+                            
+                        } )
                     }
                 } else {
                     print("Error in getting Flickr Images: \(error)")

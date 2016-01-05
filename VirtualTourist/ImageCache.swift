@@ -29,8 +29,8 @@ class ImageCache {
         }
         
         let path = pathForIdentifier(identifier!)
-        
-        // First try the memory cache
+     
+         //First try the memory cache
         if let image = inMemoryCache.objectForKey(path) as? UIImage {
             print("found an image in Memory cache: \(path)")
             return image
@@ -46,9 +46,11 @@ class ImageCache {
     }
     
     // MARK: - Saving images
-    
+    //TODO: call storeImage
     func storeImage(image: UIImage?, withIdentifier identifier: String) {
+        print("identifier: \(identifier)")
         let path = pathForIdentifier(identifier)
+        print("PATH: \(path)")
         
         // If the image is nil, remove images from the cache
         if image == nil {
@@ -65,7 +67,21 @@ class ImageCache {
         inMemoryCache.setObject(image!, forKey: path)
         
         // And in documents directory
-        let data = UIImagePNGRepresentation(image!)!
+        //let data = UIImagePNGRepresentation(image!)!
+        //print(UIImageJPEGRepresentation(image!, 1.0))
+//        guard let data  = UIImageJPEGRepresentation(image!, 1.0) else {
+//            // handle failed conversion
+//            print("Data to JPEG, jpg error")
+//            return
+//        }
+        
+        guard let data  = UIImagePNGRepresentation(image!) else {
+            // handle failed conversion
+            print("Data to PNG, error")
+            return
+        }
+        
+        
         data.writeToFile(path, atomically: true)
     }
     

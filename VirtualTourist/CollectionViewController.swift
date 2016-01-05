@@ -169,16 +169,11 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
         // Set the Photo Image
         if photo.url == nil || photo.url == "" {
             //photoImage = UIImage(named: "puppy")
-
       
         } else if photo.photoImage != nil {
             // photoImage is from the cache
             photoImage = photo.photoImage!
-            // Altho this image came from cache, still need to decrement the counter, so all are accounted for
-            //TODO: rather than decrement the counter here (where it gets called too many times, extra times when the collection view is scrolled), need to find out how many of the cells are in cache or on 'disk', so the amount to decrement accounts for them. Also, downloads don't seem to happen at all for cells that are scrolled out of view (e.g. at the bottom). So it seems that downloading needs to be done in the background so that we know when all are downloaded, and then the button is ready to be enabled
-                //TODO: also, how do we know when each individual cell is download, so acitivty indicator can be turned off?
-            //FlickrClient.sharedInstance.photoDownloadCounter -= 1
-            self.sendInfoToButton()
+            //self.sendInfoToButton()
         } else { // "This is the interesting case."- Jason. The Photo has an image name, but it is not downloaded yet.
             
             // Start the task that will eventually download the image
@@ -248,11 +243,6 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
     
     func sendInfoToButton () {
         if let parentVC = self.parentViewController as? CollectionEditor {
-//            if FlickrClient.sharedInstance.photoDownloadCounter <= 0 {
-//                parentVC.bottomButton.enabled = true
-//                print("# of completed dloads: \(FlickrClient.sharedInstance.photoDownloadCounter)")
-//                print("ENABLE THE BUTTON!")
-//            }
             if selectedIndexes.count > 0 {
                 parentVC.bottomButton.title = "Remove Selected Photos"
             } else {

@@ -28,6 +28,7 @@ class CollectionEditor: UIViewController, MKMapViewDelegate, UICollectionViewDel
     @IBOutlet weak var mapView: MKMapView!
     //@IBOutlet weak var coordinatesLabel: UILabel!
     @IBOutlet weak var bottomButton: UIBarButtonItem!
+    @IBOutlet weak var searchbox: UITextField!
     
     override func viewDidLoad() {
         
@@ -98,10 +99,13 @@ class CollectionEditor: UIViewController, MKMapViewDelegate, UICollectionViewDel
             embeddedCollectionView?.deleteAllPhotos()
             // fetch the photo url's for this Pin
             // TODO: move to a better place, and consolidate with similar code in MapViewController
-            flickr.getFlickrImagesForCoordinates(coordinates!, getTotal:  true) { success, error in
+//            if let searchterm = searchbox.text {
+//                print(searchterm)
+//            }
+            flickr.getFlickrImagesForCoordinates(coordinates!, getTotal:  true, searchtext: searchbox.text) { success, error in
                 
             }
-            flickr.getFlickrImagesForCoordinates(coordinates!, getTotal: false) { success, error in
+            flickr.getFlickrImagesForCoordinates(coordinates!, getTotal: false, searchtext: searchbox.text) { success, error in
                 if success {
                     for url in self.model.photoArray! {
                         dispatch_async(dispatch_get_main_queue(), {
@@ -110,6 +114,22 @@ class CollectionEditor: UIViewController, MKMapViewDelegate, UICollectionViewDel
                             photo.pin = self.currentPin
                             photo.url = url
                             
+                            _ = FlickrClient.sharedInstance.taskForImage(photo.url!) { data, error in
+                                
+                                if let error = error {
+                                    print("Photo download error: \(error.localizedDescription)")
+                                }
+                                
+                                if let data = data {
+                                    // Create the image
+                                    let image = UIImage(data: data)
+                                    
+                                    // update the model, so that the information gets cached
+                                    photo.photoImage = image
+                                }
+                            }
+                            
+                            /*older, deprecated download code
                             let request = NSURLRequest(URL: NSURL(string: url)!)
                             NSURLConnection.sendAsynchronousRequest(request, queue: NSOperationQueue.mainQueue()) {
                                 (response: NSURLResponse?, data: NSData?, error: NSError?) -> Void in
@@ -117,6 +137,7 @@ class CollectionEditor: UIViewController, MKMapViewDelegate, UICollectionViewDel
                                     //
                                 }
                             }
+                            */
                         })
                     }
                 } else {

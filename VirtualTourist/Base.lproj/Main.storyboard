@@ -3,7 +3,6 @@
     <dependencies>
         <deployment identifier="iOS"/>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="9051"/>
-        <capability name="Constraints to layout margins" minToolsVersion="6.0"/>
     </dependencies>
     <scenes>
         <!--Map-->
@@ -40,19 +39,13 @@
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <mapView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" mapType="standard" scrollEnabled="NO" rotateEnabled="NO" translatesAutoresizingMaskIntoConstraints="NO" id="GJ8-dB-hsP">
-                                <rect key="frame" x="0.0" y="64" width="600" height="180"/>
+                                <rect key="frame" x="0.0" y="87" width="600" height="194"/>
                                 <constraints>
-                                    <constraint firstAttribute="height" constant="180" id="zu5-k4-bGm"/>
+                                    <constraint firstAttribute="height" constant="194" id="zu5-k4-bGm"/>
                                 </constraints>
                             </mapView>
-                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="k8G-dV-1z4">
-                                <rect key="frame" x="20" y="302" width="42" height="20.5"/>
-                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
-                                <color key="textColor" red="0.0" green="0.47843137250000001" blue="1" alpha="1" colorSpace="calibratedRGB"/>
-                                <nil key="highlightedColor"/>
-                            </label>
                             <containerView opaque="NO" tag="3000" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="WHc-Iq-GXK">
-                                <rect key="frame" x="0.0" y="244" width="600" height="312"/>
+                                <rect key="frame" x="0.0" y="282" width="600" height="274"/>
                                 <color key="backgroundColor" red="0.82162519190000005" green="0.091268024320000002" blue="1" alpha="1" colorSpace="calibratedRGB"/>
                                 <connections>
                                     <segue destination="V89-CL-Ahw" kind="embed" id="Sen-2v-PVv"/>
@@ -70,33 +63,35 @@
                                     <barButtonItem style="plain" systemItem="flexibleSpace" id="BNl-gu-QSz"/>
                                 </items>
                             </toolbar>
+                            <textField opaque="NO" clipsSubviews="YES" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="bezel" placeholder="Enter optional search terms here" textAlignment="center" minimumFontSize="17" clearButtonMode="whileEditing" translatesAutoresizingMaskIntoConstraints="NO" id="0UK-De-HIg">
+                                <rect key="frame" x="0.0" y="64" width="600" height="22"/>
+                                <color key="textColor" red="1" green="0.160998218" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="14"/>
+                                <textInputTraits key="textInputTraits"/>
+                            </textField>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                         <constraints>
-                            <constraint firstItem="GJ8-dB-hsP" firstAttribute="top" secondItem="pGQ-aI-wPc" secondAttribute="bottom" id="322-ON-APp"/>
                             <constraint firstItem="GJ8-dB-hsP" firstAttribute="trailing" secondItem="kA3-tP-gyK" secondAttribute="trailing" id="3Bb-bY-TTl"/>
                             <constraint firstItem="6Xz-g7-sIp" firstAttribute="top" secondItem="WHc-Iq-GXK" secondAttribute="bottom" id="5qa-E2-Ppb"/>
                             <constraint firstItem="6Xz-g7-sIp" firstAttribute="leading" secondItem="kA3-tP-gyK" secondAttribute="leading" id="Dgj-QB-Zaz"/>
                             <constraint firstItem="GJ8-dB-hsP" firstAttribute="leading" secondItem="kA3-tP-gyK" secondAttribute="leading" id="MwI-5I-glj"/>
                             <constraint firstAttribute="leading" secondItem="WHc-Iq-GXK" secondAttribute="leading" id="N7G-xJ-8BZ"/>
+                            <constraint firstItem="0UK-De-HIg" firstAttribute="top" secondItem="pGQ-aI-wPc" secondAttribute="bottom" id="SvO-2r-5rg"/>
                             <constraint firstItem="q21-9u-6rj" firstAttribute="top" secondItem="6Xz-g7-sIp" secondAttribute="bottom" id="U0w-us-ysA"/>
-                            <constraint firstItem="k8G-dV-1z4" firstAttribute="leading" secondItem="kA3-tP-gyK" secondAttribute="leadingMargin" id="f62-qu-5ck"/>
-                            <constraint firstItem="q21-9u-6rj" firstAttribute="top" secondItem="k8G-dV-1z4" secondAttribute="bottom" constant="277.5" id="nER-Kw-LKk"/>
-                            <constraint firstItem="WHc-Iq-GXK" firstAttribute="top" secondItem="GJ8-dB-hsP" secondAttribute="bottom" id="puV-5k-Iof"/>
-                            <constraint firstItem="WHc-Iq-GXK" firstAttribute="top" secondItem="k8G-dV-1z4" secondAttribute="bottom" constant="8" id="r0i-sw-ySg"/>
+                            <constraint firstItem="GJ8-dB-hsP" firstAttribute="top" secondItem="0UK-De-HIg" secondAttribute="bottom" constant="1" id="WFM-gV-qaK"/>
+                            <constraint firstAttribute="trailing" secondItem="0UK-De-HIg" secondAttribute="trailing" id="emS-39-Kd0"/>
+                            <constraint firstItem="WHc-Iq-GXK" firstAttribute="top" secondItem="GJ8-dB-hsP" secondAttribute="bottom" constant="1" id="puV-5k-Iof"/>
                             <constraint firstAttribute="trailing" secondItem="6Xz-g7-sIp" secondAttribute="trailing" id="tqL-Bf-ewg"/>
                             <constraint firstItem="WHc-Iq-GXK" firstAttribute="bottom" secondItem="kA3-tP-gyK" secondAttribute="bottom" constant="-44" id="uE6-38-XeO"/>
+                            <constraint firstItem="0UK-De-HIg" firstAttribute="leading" secondItem="kA3-tP-gyK" secondAttribute="leading" id="wfF-AK-olh"/>
                             <constraint firstItem="WHc-Iq-GXK" firstAttribute="trailing" secondItem="kA3-tP-gyK" secondAttribute="trailing" id="yYJ-l4-7xH"/>
                         </constraints>
-                        <variation key="default">
-                            <mask key="constraints">
-                                <exclude reference="r0i-sw-ySg"/>
-                            </mask>
-                        </variation>
                     </view>
                     <connections>
                         <outlet property="bottomButton" destination="l1L-HW-JAC" id="PLZ-uZ-qDz"/>
                         <outlet property="mapView" destination="GJ8-dB-hsP" id="bJW-wW-Gcc"/>
+                        <outlet property="searchbox" destination="0UK-De-HIg" id="naB-iP-gXc"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="Qlp-xD-9rL" userLabel="First Responder" sceneMemberID="firstResponder"/>
@@ -108,7 +103,7 @@
             <objects>
                 <collectionViewController id="V89-CL-Ahw" customClass="CollectionViewController" customModule="VirtualTourist" customModuleProvider="target" sceneMemberID="viewController">
                     <collectionView key="view" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" dataMode="prototypes" id="Dcc-vu-JNf">
-                        <rect key="frame" x="0.0" y="0.0" width="600" height="312"/>
+                        <rect key="frame" x="0.0" y="0.0" width="600" height="274"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <color key="backgroundColor" red="1" green="0.94907457750000002" blue="0.62519395369999997" alpha="1" colorSpace="calibratedRGB"/>
                         <collectionViewFlowLayout key="collectionViewLayout" minimumLineSpacing="4" minimumInteritemSpacing="4" id="b1Y-U6-XKi">
