@@ -90,26 +90,6 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
         let margin  = CGFloat(5)//(frame.width - 90 * 3) / 6.0
         return UIEdgeInsetsMake(2, margin, 2, margin) // margin between cells
     }
-    
-    // Layout the collection view
-    
-//    override func viewDidLayoutSubviews() {
-//         super.viewDidLayoutSubviews()
-//    print("layoutSubviews")
-//         //Lay out the collection view so that cells take up 1/3 of the width,
-//        // with no space in between.
-//        let layout : UICollectionViewFlowLayout = UICollectionViewFlowLayout()
-//        layout.sectionInset = UIEdgeInsets(top: 2.0, left: 2.0, bottom: 2.0, right: 2.0)
-//        layout.minimumLineSpacing = 0
-//        layout.minimumInteritemSpacing = 0
-//        
-//        let width = floor(self.collectionView!.frame.size.width/4)
-//        layout.itemSize = CGSize(width: width, height: width)
-//        for sub in collectionView!.subviews {
-//            print(sub.tag)
-//        }
-//        collectionView!.collectionViewLayout = layout
-//    }
 
     // MARK: UICollectionViewDataSource
 
@@ -133,7 +113,6 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
 //            print("no photos here yet")
 //            return 21 // if there are no photos ready, still, display the collection view with 21 empty cells
 //        }
-        print("COUNT: \(currentPin?.photos.count)")
         return (currentPin?.photos.count)!
 //        FlickrClient.sharedInstance.photoDownloadCounter = numberOfItems!
 //        return numberOfItems!
@@ -189,12 +168,19 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
                     
                     // update the model, so that the information gets cached
                     photo.photoImage = image
+                    photo.downloaded = true
+                    do {
+                        try self.sharedContext.save()
+                    } catch {
+                        print("error in saving the Photo to core data")
+                    }
                     
                     // Will this be handled by FetchedResultsController?
 //                    // update the cell later, on the main thread
 //                    
                     //FlickrClient.sharedInstance.photoDownloadCounter -= 1
                     self.sendInfoToButton()
+                    
                     dispatch_async(dispatch_get_main_queue()) {
                         cell.cellView.image = image
                         cell.image = image

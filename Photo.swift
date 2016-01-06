@@ -14,6 +14,7 @@ import UIKit
 class Photo: NSManagedObject {
 
     @NSManaged var url: String? //TODO: not the best naming strategy to name a String a url. Better to name it something like filepath?
+    @NSManaged var downloaded: Bool
     @NSManaged var pin: NSManagedObject?
     
     // standard Core Data init method.
@@ -26,7 +27,7 @@ class Photo: NSManagedObject {
         let entity = NSEntityDescription.entityForName("Photo", inManagedObjectContext: context)!
         
         super.init(entity: entity,insertIntoManagedObjectContext: context)
-        
+
         url = dictionary[url!] as? String
     }
 

@@ -123,7 +123,7 @@
                                         <imageView userInteractionEnabled="NO" contentMode="scaleAspectFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="nbC-1f-hdG">
                                             <rect key="frame" x="2" y="2" width="116" height="116"/>
                                         </imageView>
-                                        <activityIndicatorView opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" fixedFrame="YES" hidesWhenStopped="YES" animating="YES" style="whiteLarge" translatesAutoresizingMaskIntoConstraints="NO" id="jc6-Qn-PU0">
+                                        <activityIndicatorView hidden="YES" opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" fixedFrame="YES" hidesWhenStopped="YES" style="whiteLarge" translatesAutoresizingMaskIntoConstraints="NO" id="jc6-Qn-PU0">
                                             <rect key="frame" x="42" y="41" width="37" height="37"/>
                                             <color key="color" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
                                         </activityIndicatorView>
@@ -139,6 +139,7 @@
                                 </constraints>
                                 <edgeInsets key="layoutMargins" top="8" left="8" bottom="8" right="8"/>
                                 <connections>
+                                    <outlet property="activityView" destination="jc6-Qn-PU0" id="Pg3-51-ufQ"/>
                                     <outlet property="cellView" destination="nbC-1f-hdG" id="KE7-vT-cFl"/>
                                 </connections>
                             </collectionViewCell>

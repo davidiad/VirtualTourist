@@ -14,6 +14,7 @@ class CollectionViewCell: UICollectionViewCell {
     //var image: UIImage?  //TODO: check if this is being used
     
     @IBOutlet weak var cellView: UIImageView!
+    @IBOutlet weak var activityView: UIActivityIndicatorView!
     
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -59,7 +60,11 @@ class CollectionViewCell: UICollectionViewCell {
     func setPhoto(photo: Photo) {
         if let downloadedImage = cellView.image {
             print("cellView has an image!")
+            self.userInteractionEnabled = true
+            activityView.stopAnimating()
         } else {
+            self.userInteractionEnabled = false
+            activityView.startAnimating()
             print("No photo yet!")
         }
     }

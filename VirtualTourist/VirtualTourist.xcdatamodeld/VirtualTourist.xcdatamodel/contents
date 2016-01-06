@@ -8,6 +8,7 @@
         <attribute name="zoom" optional="YES" attributeType="Double" defaultValueString="0.0" syncable="YES"/>
     </entity>
     <entity name="Photo" representedClassName=".Photo" syncable="YES">
+        <attribute name="downloaded" attributeType="Boolean" defaultValueString="NO" syncable="YES"/>
         <attribute name="url" optional="YES" attributeType="String" syncable="YES"/>
         <relationship name="pin" maxCount="1" deletionRule="Nullify" destinationEntity="Pin" inverseName="photos" inverseEntity="Pin" syncable="YES"/>
     </entity>
@@ -19,7 +20,7 @@
     </entity>
     <elements>
         <element name="MapViewInfo" positionX="-36" positionY="18" width="128" height="120"/>
-        <element name="Photo" positionX="-54" positionY="9" width="128" height="75"/>
+        <element name="Photo" positionX="-54" positionY="9" width="128" height="90"/>
         <element name="Pin" positionX="-63" positionY="-18" width="128" height="105"/>
     </elements>
 </model>
