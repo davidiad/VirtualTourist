@@ -52,22 +52,28 @@ class CollectionViewCell: UICollectionViewCell {
     var image: UIImage? {
         didSet {
             if oldValue == nil {
-                //print("An image was set and I'm a cell!")
+                print("An image was set and I'm a cell!")
+                //photo.downloaded = true
+                self.userInteractionEnabled = true
+                activityView.stopAnimating()
             }
         }
     }
     
-    func setPhoto(photo: Photo) {
-        if let downloadedImage = cellView.image {
-            print("cellView has an image!")
-            self.userInteractionEnabled = true
-            activityView.stopAnimating()
-        } else {
-            self.userInteractionEnabled = false
-            activityView.startAnimating()
-            print("No photo yet!")
-        }
-    }
+//    //TODO: is this func needed at all, aside from activityView.startAnimating()?
+//    func setPhoto(photo: Photo) {
+//        //if let downloadedImage = cellView.image {
+//        if cellView.image != nil {
+//            print("cellView has an image!")
+//            photo.downloaded = true //TODO: needed?
+//            self.userInteractionEnabled = true //TODO: needed?
+//            activityView.stopAnimating() //TODO: needed?
+//        } else {
+//            self.userInteractionEnabled = false
+//            activityView.startAnimating()
+//            print("No photo yet!")
+//        }
+//    }
     
     
     

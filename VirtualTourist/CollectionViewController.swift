@@ -12,6 +12,7 @@ import MapKit
 
 let reuseIdentifier = "Cell"
 //let sectionInsets = UIEdgeInsets(top: 1.0, left: 1.0, bottom: 1.0, right: 1.0)
+var numPhotos: Int?
 var csize: CGSize = CGSizeMake(100, 100)
 
 class CollectionViewController: UICollectionViewController, NSFetchedResultsControllerDelegate {
@@ -113,9 +114,10 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
 //            print("no photos here yet")
 //            return 21 // if there are no photos ready, still, display the collection view with 21 empty cells
 //        }
-        return (currentPin?.photos.count)!
-//        FlickrClient.sharedInstance.photoDownloadCounter = numberOfItems!
-//        return numberOfItems!
+        numPhotos = currentPin?.photos.count
+        sendInfoToCollectionEditor()
+        //return (currentPin?.photos.count)!
+        return numPhotos!
     }
 
     override func collectionView(collectionView: UICollectionView, cellForItemAtIndexPath indexPath: NSIndexPath) -> UICollectionViewCell {
@@ -144,7 +146,8 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
         var photoImage: UIImage?
         let photo = self.fetchedResultsController.objectAtIndexPath(indexPath) as! Photo
         
-        cell.setPhoto(photo)
+        //cell.setPhoto(photo)
+        
         // Set the Photo Image
         if photo.url == nil || photo.url == "" {
             //photoImage = UIImage(named: "puppy")
@@ -168,7 +171,8 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
                     
                     // update the model, so that the information gets cached
                     photo.photoImage = image
-                    photo.downloaded = true
+                    //TODO: should photo.downloaded already be true? and should be set within the cell where it downloads
+                    //photo.downloaded = true
                     do {
                         try self.sharedContext.save()
                     } catch {
@@ -179,11 +183,14 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
 //                    // update the cell later, on the main thread
 //                    
                     //FlickrClient.sharedInstance.photoDownloadCounter -= 1
-                    self.sendInfoToButton()
+                    self.sendInfoToCollectionEditor()
                     
                     dispatch_async(dispatch_get_main_queue()) {
                         cell.cellView.image = image
-                        cell.image = image
+                        cell.image = image // TODO: not sure if this line, or variable, is needed, but for now, it is what triggers didSet for image, stopping activity indicator and allow enableUserInteraction for the cell
+                        // Make an array of NSIndexPaths with just the current cell's indexpath in it
+                        let indexPaths: [NSIndexPath] = [indexPath]
+                        self.collectionView?.reloadItemsAtIndexPaths(indexPaths)
                     }
                 }
             }
@@ -217,8 +224,7 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
         }
         
         // Send the updated info to the button, so it knows what to say
-        sendInfoToButton()
-        
+        sendInfoToCollectionEditor()
         
         if cell.alpha < 1.0 {
             cell.alpha = 1.0
@@ -227,12 +233,17 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
         }
     }
     
-    func sendInfoToButton () {
+    func sendInfoToCollectionEditor () {
         if let parentVC = self.parentViewController as? CollectionEditor {
             if selectedIndexes.count > 0 {
                 parentVC.bottomButton.title = "Remove Selected Photos"
             } else {
                 parentVC.bottomButton.title = "New Collection"
+            }
+            if numPhotos != nil {
+                parentVC.numPhotosLabel.text = "\(numPhotos!) photos were found"
+            } else {
+                parentVC.numPhotosLabel.text = "No photos were found."
             }
         }
     }

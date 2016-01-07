@@ -29,6 +29,7 @@ class CollectionEditor: UIViewController, MKMapViewDelegate, UICollectionViewDel
     //@IBOutlet weak var coordinatesLabel: UILabel!
     @IBOutlet weak var bottomButton: UIBarButtonItem!
     @IBOutlet weak var searchbox: UITextField!
+    @IBOutlet weak var numPhotosLabel: UILabel!
     
     override func viewDidLoad() {
         
