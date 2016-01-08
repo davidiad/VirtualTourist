@@ -49,13 +49,17 @@ class CollectionViewCell: UICollectionViewCell {
         }
     }
     
+//    override func prepareForReuse() {
+//        super.prepareForReuse()
+//        cellView.image = nil
+//    }
+    
     var image: UIImage? {
         didSet {
             if oldValue == nil {
-                print("An image was set and I'm a cell!")
-                //photo.downloaded = true
-                self.userInteractionEnabled = true
                 activityView.stopAnimating()
+                //TODO: only allow cell userInteraction after *all* cells are downloaded (may be causing possibilty of crash if cells are selected before downloading is done)
+                //self.userInteractionEnabled = true
             }
         }
     }

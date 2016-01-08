@@ -58,11 +58,17 @@ class Photo: NSManagedObject {
             return VirtualTouristModel.Caches.imageCache.imageWithIdentifier(fileName!)
         }
         set {
-            //TODO: got a crash here when unwrapping optional while clicking a cell to mark for removal
-            let convertedUrl = NSURL(fileURLWithPath: url!)
-            let fileName = convertedUrl.lastPathComponent
+            //TODO: got a crash here when unwrapping optional while clicking a cell to mark for removal or clicking new collection button multiple times
+            if url != nil {
+                let convertedUrl = NSURL(fileURLWithPath: url!)
+                let fileName = convertedUrl.lastPathComponent
             
-            VirtualTouristModel.Caches.imageCache.storeImage(newValue, withIdentifier: fileName!)
+                VirtualTouristModel.Caches.imageCache.storeImage(newValue, withIdentifier: fileName!)
+                downloaded = true
+            } else {
+                print("No URL string")
+            }
+
         }
     }
 

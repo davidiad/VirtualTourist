@@ -12,10 +12,10 @@ import MapKit
 
 let reuseIdentifier = "Cell"
 //let sectionInsets = UIEdgeInsets(top: 1.0, left: 1.0, bottom: 1.0, right: 1.0)
-var numPhotos: Int?
 var csize: CGSize = CGSizeMake(100, 100)
 
 class CollectionViewController: UICollectionViewController, NSFetchedResultsControllerDelegate {
+    
     
     // Question: Before enabling the bottom button, so we need to check that all cells have downloaded? Or just the visible ones? Or just that the url's have been fetched? Can I check to see if the cell's photoImage property is not nil? Or might those be deleted from the cache by the system, so unreliable?
     /*
@@ -26,6 +26,8 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
     let model = VirtualTouristModel.sharedInstance
     var coordinates : CLLocationCoordinate2D?
     var currentPin: Pin?
+    var numPhotos: Int?
+    var photoCounter: Int?
     private let barSize : CGFloat = 0.0
     
     // The selected indexes array keeps all of the indexPaths for cells that are "selected". The array is
@@ -65,6 +67,10 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
         
 
     }
+    
+//    override func viewDidAppear(animated: Bool) {
+//        countDownloaded()
+//    }
     
     override func viewWillLayoutSubviews() {
         let frame = self.view.frame
@@ -115,9 +121,24 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
 //            return 21 // if there are no photos ready, still, display the collection view with 21 empty cells
 //        }
         numPhotos = currentPin?.photos.count
+        photoCounter = numPhotos
+        countDownloaded()
         sendInfoToCollectionEditor()
         //return (currentPin?.photos.count)!
         return numPhotos!
+    }
+    
+    // loop through the photos, and decrement photoCounter for each photo that's already been downloaded
+    func countDownloaded() {
+        let arrayOfPhotos = fetchedResultsController.fetchedObjects
+        for photo in arrayOfPhotos as! [Photo] {
+            if photo.downloaded == true {
+                if photoCounter != nil {
+                    photoCounter! -= 1
+                    print(photoCounter!)
+                }
+            }
+        }
     }
 
     override func collectionView(collectionView: UICollectionView, cellForItemAtIndexPath indexPath: NSIndexPath) -> UICollectionViewCell {
@@ -138,10 +159,30 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
         return cell
     }
     
+    //TODO: count cells to discover whether resetting the image is keeping the activity indicator from showing when it should
+//    func resetCell(cell: CollectionViewCell) {
+//        if cell.cellView.image != nil {
+//            cell.cellView.image = nil
+//        }
+//    }
+    
+    func checkPhotoCount(photo: Photo) {
+        if photo.downloaded == false {
+            photoCounter! -= 1
+            print("photoCount: \(photoCounter)")
+        }
+        photo.downloaded = true
+        if photoCounter <= 0 {
+            // enable the New Collection button
+            sendInfoToCollectionEditor()
+        }
+    }
+    
     // Configure cell for image cache etc
 //    func configureCell(cell: TaskCancelingTableViewCell, movie: Movie) {
     func configureCell(cell: CollectionViewCell, indexPath: NSIndexPath) {
-        
+        //resetCell(cell)
+
         //var photoImage = UIImage(named: "puppy")
         var photoImage: UIImage?
         let photo = self.fetchedResultsController.objectAtIndexPath(indexPath) as! Photo
@@ -153,10 +194,13 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
             //photoImage = UIImage(named: "puppy")
       
         } else if photo.photoImage != nil {
+            
             // photoImage is from the cache
             photoImage = photo.photoImage!
-            //self.sendInfoToButton()
-        } else { // "This is the interesting case."- Jason. The Photo has an image name, but it is not downloaded yet.
+            //checkPhotoCount(photo)
+            //photo.downloaded = true
+            
+        } else { // "This is the interesting case."- Jason@Udacity. The Photo has an image name, but it is not downloaded yet.
             
             // Start the task that will eventually download the image
             let task = FlickrClient.sharedInstance.taskForImage(photo.url!) { data, error in
@@ -172,7 +216,9 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
                     // update the model, so that the information gets cached
                     photo.photoImage = image
                     //TODO: should photo.downloaded already be true? and should be set within the cell where it downloads
+                    self.checkPhotoCount(photo)
                     //photo.downloaded = true
+                    
                     do {
                         try self.sharedContext.save()
                     } catch {
@@ -190,6 +236,7 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
                         cell.image = image // TODO: not sure if this line, or variable, is needed, but for now, it is what triggers didSet for image, stopping activity indicator and allow enableUserInteraction for the cell
                         // Make an array of NSIndexPaths with just the current cell's indexpath in it
                         let indexPaths: [NSIndexPath] = [indexPath]
+                        //TODO: make sure we aren't calling reload too much (called in fetchController code as well)
                         self.collectionView?.reloadItemsAtIndexPaths(indexPaths)
                     }
                 }
@@ -215,7 +262,7 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
         
         let cell = collectionView.cellForItemAtIndexPath(indexPath) as! CollectionViewCell
         
-        // Whenever a cell is tapped we will toggle its presence in the selectedIndexes array
+        // Whenever a cell is tapped, toggle its presence in the selectedIndexes array
         //if let index = find(selectedIndexes, indexPath) {
         if let index = selectedIndexes.indexOf(indexPath) {
             selectedIndexes.removeAtIndex(index)
@@ -229,7 +276,7 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
         if cell.alpha < 1.0 {
             cell.alpha = 1.0
         } else {
-            cell.alpha = 0.3
+            cell.alpha = 0.25
         }
     }
     
@@ -245,15 +292,20 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
             } else {
                 parentVC.numPhotosLabel.text = "No photos were found."
             }
+            if photoCounter! <= 0 {
+                parentVC.bottomButton.enabled = true
+                // allow cells to be selected
+                collectionView?.userInteractionEnabled = true
+            }
         }
     }
     
-    /*
+    //TODO: Need this func?
     // Uncomment this method to specify if the specified item should be highlighted during tracking
-    override func collectionView(collectionView: UICollectionView, shouldHighlightItemAtIndexPath indexPath: NSIndexPath) -> Bool {
-        return true
-    }
-    */
+//    override func collectionView(collectionView: UICollectionView, shouldHighlightItemAtIndexPath indexPath: NSIndexPath) -> Bool {
+//        return true
+//    }
+
 
     /*
     // Uncomment this method to specify if the specified item should be selected
@@ -282,7 +334,6 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
     lazy var fetchedResultsController: NSFetchedResultsController = {
         
         let fetchRequest = NSFetchRequest(entityName: "Photo")
-        //TODO: Sometimes segues to here when there is no currentPin property, which should not happen
         fetchRequest.predicate = NSPredicate(format: "pin == %@", self.currentPin!)
         fetchRequest.sortDescriptors = []
         
@@ -307,7 +358,7 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
     }
     
     // The second method may be called multiple times, once for each Color object that is added, deleted, or changed.
-    // We store the incex paths into the three arrays.
+    // We store the index paths into the three arrays.
     func controller(controller: NSFetchedResultsController, didChangeObject anObject: AnyObject, atIndexPath indexPath: NSIndexPath?, forChangeType type: NSFetchedResultsChangeType, newIndexPath: NSIndexPath?) {
         
         switch type{
@@ -330,7 +381,7 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
             print("Update an item.")
             // We don't expect Color instances to change after they are created. But Core Data would
             // notify us of changes if any occured. This can be useful if you want to respond to changes
-            // that come about after data is downloaded. For example, when an images is downloaded from
+            // that come about after data is downloaded. For example, when an image is downloaded from
             // Flickr in the Virtual Tourist app
             updatedIndexPaths.append(indexPath!)
             break
@@ -351,7 +402,7 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
     func controllerDidChangeContent(controller: NSFetchedResultsController) {
         
         print("in controllerDidChangeContent. changes.count: \(insertedIndexPaths.count + deletedIndexPaths.count)")
-        
+        print("updated count: \(updatedIndexPaths.count)")
         collectionView!.performBatchUpdates({() -> Void in
             
             for indexPath in self.insertedIndexPaths {
@@ -363,6 +414,7 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
             }
             
             for indexPath in self.updatedIndexPaths {
+                //print("ip: \(indexPath)")
                 self.collectionView!.reloadItemsAtIndexPaths([indexPath])
             }
             
@@ -370,7 +422,7 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
     }
     
     func deleteAllPhotos() {
-        
+        //TODO: can crash when hitting New Collection butt over and over
         for photo in fetchedResultsController.fetchedObjects as! [Photo] {
             sharedContext.deleteObject(photo)
         }
@@ -393,16 +445,16 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
     
 }
 
-extension UIImageView {
-    public func imageFromUrl(urlString: String) {
-        if let url = NSURL(string: urlString) {
-            let request = NSURLRequest(URL: url)
-            NSURLConnection.sendAsynchronousRequest(request, queue: NSOperationQueue.mainQueue()) {
-                (response: NSURLResponse?, data: NSData?, error: NSError?) -> Void in
-                if let imageData = data as NSData? {
-                    self.image = UIImage(data: imageData)
-                }
-            }
-        }
-    }
-}
+//extension UIImageView {
+//    public func imageFromUrl(urlString: String) {
+//        if let url = NSURL(string: urlString) {
+//            let request = NSURLRequest(URL: url)
+//            NSURLConnection.sendAsynchronousRequest(request, queue: NSOperationQueue.mainQueue()) {
+//                (response: NSURLResponse?, data: NSData?, error: NSError?) -> Void in
+//                if let imageData = data as NSData? {
+//                    self.image = UIImage(data: imageData)
+//                }
+//            }
+//        }
+//    }
+//}
