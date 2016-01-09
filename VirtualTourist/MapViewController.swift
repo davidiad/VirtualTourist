@@ -45,6 +45,7 @@ class MapViewController: UIViewController, MKMapViewDelegate {
     func addAnnotation(gestureRecognizer:UIGestureRecognizer) {
         let touchPoint = gestureRecognizer.locationInView(map)
         let newCoordinates = map.convertPoint(touchPoint, toCoordinateFromView: map)
+        //TODO: convert to switch statement. Not necessary, but cleaner code
         if gestureRecognizer.state == UIGestureRecognizerState.Began { // allows only 1 pin per touch
 
             //pinDeselected = false
@@ -192,20 +193,22 @@ class MapViewController: UIViewController, MKMapViewDelegate {
 //        performSegueWithIdentifier("fromMap", sender: pinView)
 //    }
     
-    func dragPin(gestureRecognizer: UIPanGestureRecognizer) {
-        print("Drag!")
-        let touchPoint = gestureRecognizer.locationInView(map)
-        let newCoordinates = map.convertPoint(touchPoint, toCoordinateFromView: map)
-        let annotation = MKPointAnnotation()
-        annotation.coordinate = newCoordinates
-    }
+//    func dragPin(gestureRecognizer: UIPanGestureRecognizer) {
+//        print("Drag!")
+//        let touchPoint = gestureRecognizer.locationInView(map)
+//        let newCoordinates = map.convertPoint(touchPoint, toCoordinateFromView: map)
+//        let annotation = MKPointAnnotation()
+//        annotation.coordinate = newCoordinates
+//    }
     
     func gestureRecognizer(gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWithGestureRecognizer otherGestureRecognizer: UIGestureRecognizer) -> Bool {
-        if gestureRecognizer is UIPanGestureRecognizer || gestureRecognizer is UITapGestureRecognizer {
-            return true
-        } else {
-            return false
-        }
+//        if gestureRecognizer is UITapGestureRecognizer {
+//            return true
+//        } else {
+//            return false
+//        }
+        print("in simultaneous")
+        return true
     }
     
     // MARK: - MKMapViewDelegate
@@ -228,6 +231,7 @@ class MapViewController: UIViewController, MKMapViewDelegate {
         }
         else {
             pinView!.annotation = annotation
+            //TODO: make pins a consistent color
             pinView?.pinTintColor = UIColor.blueColor()
         }
         //let pintap = UIPanGestureRecognizer(target: self, action: "tapPin:")
@@ -279,7 +283,10 @@ class MapViewController: UIViewController, MKMapViewDelegate {
     func mapView(mapView: MKMapView, didSelectAnnotationView view: MKAnnotationView) {
         print("Selected annotation view")
         saveMapInfo()
-        /* I see no need to getFlickrImages again. They should already be stored, when the pin was added, whether this is a brand new pin, or a pre-existing one. But are the photos downloaded at this point?
+        // Not sure why, but unless the annotation is deselected, it is not selectable if returning from the collection view
+        mapView.deselectAnnotation(view.annotation, animated: false)
+        /* I see no need to getFlic
+        krImages again. They should already be stored, when the pin was added, whether this is a brand new pin, or a pre-existing one. But are the photos downloaded at this point?
         model.photoArray?.removeAll() // ensure that we don't see images from a previous pin by deleting them
         //TODO: Should be able to delete this photoArray, and get images directly from core data
         flickr.getFlickrImagesForCoordinates((view.annotation?.coordinate)!, getTotal: true) { success, error in
@@ -292,9 +299,13 @@ class MapViewController: UIViewController, MKMapViewDelegate {
         }*/
         //if self.mapView(map, didDeselectAnnotationView: view) {
         //if pinDeselected {
-            self.performSegueWithIdentifier("fromMap", sender: view.annotation)
+        self.performSegueWithIdentifier("fromMap", sender: view.annotation)
         //}
         //}
+    }
+    
+    func mapView(mapView: MKMapView, didDeselectAnnotationView view: MKAnnotationView) {
+        //
     }
     
     override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
