@@ -414,7 +414,6 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
             }
             
             for indexPath in self.updatedIndexPaths {
-                //print("ip: \(indexPath)")
                 self.collectionView!.reloadItemsAtIndexPaths([indexPath])
             }
             
@@ -422,7 +421,15 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
     }
     
     func deleteAllPhotos() {
-        //TODO: can crash when hitting New Collection butt over and over
+        // TODO: Can crash when hitting New Collection butt over and over
+        // therefore, disable the button first
+        if let parentVC = self.parentViewController as? CollectionEditor {
+                parentVC.bottomButton.enabled = false
+                // disallow cells to be selected while deletions are happening
+                collectionView?.userInteractionEnabled = false
+        }
+        //TODO: seems to not finish deletions before button is enabled. Why?
+        // need to prevent enabling of butt
         for photo in fetchedResultsController.fetchedObjects as! [Photo] {
             sharedContext.deleteObject(photo)
         }
