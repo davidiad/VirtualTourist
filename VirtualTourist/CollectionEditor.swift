@@ -10,7 +10,7 @@ import UIKit
 import MapKit
 import CoreData
 
-class CollectionEditor: UIViewController, MKMapViewDelegate, UICollectionViewDelegate {
+class CollectionEditor: UIViewController, MKMapViewDelegate, UICollectionViewDelegate, UITextFieldDelegate {
 
     let flickr = FlickrClient.sharedInstance
     let model = VirtualTouristModel.sharedInstance
@@ -24,6 +24,7 @@ class CollectionEditor: UIViewController, MKMapViewDelegate, UICollectionViewDel
     var embeddedCollectionView: CollectionViewController?
     
     var testy: Int = 0
+    var keyboardHeight: CGFloat?
 
     @IBOutlet weak var mapView: MKMapView!
     //@IBOutlet weak var coordinatesLabel: UILabel!
@@ -34,6 +35,7 @@ class CollectionEditor: UIViewController, MKMapViewDelegate, UICollectionViewDel
     override func viewDidLoad() {
         
         super.viewDidLoad()
+        searchbox.delegate = self
         mapView.delegate = self
         let span = MKCoordinateSpanMake(0.25, 0.25)
         if coordinates != nil {
@@ -155,5 +157,20 @@ class CollectionEditor: UIViewController, MKMapViewDelegate, UICollectionViewDel
       //  } else {
             bottomButton.title = "New Collection"
        // }
+    }
+    
+    //MARK:- Keyboard dismissal
+    
+    func textFieldShouldReturn(textField: UITextField) -> Bool {
+        textField.resignFirstResponder()
+        return true
+    }
+    
+    // Cancels textfield editing when user touches outside the textfield
+    override func touchesBegan(touches: Set<UITouch>, withEvent event: UIEvent?) {
+        if searchbox.isFirstResponder() {
+            view.endEditing(true)
+        }
+        super.touchesBegan(touches, withEvent:event)
     }
 }
