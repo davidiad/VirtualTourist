@@ -5,7 +5,6 @@
         <attribute name="latDelta" optional="YES" attributeType="Double" defaultValueString="0.0" syncable="YES"/>
         <attribute name="lon" optional="YES" attributeType="Double" defaultValueString="0.0" syncable="YES"/>
         <attribute name="lonDelta" optional="YES" attributeType="Double" defaultValueString="0.0" syncable="YES"/>
-        <attribute name="zoom" optional="YES" attributeType="Double" defaultValueString="0.0" syncable="YES"/>
     </entity>
     <entity name="Photo" representedClassName=".Photo" syncable="YES">
         <attribute name="downloaded" attributeType="Boolean" defaultValueString="NO" syncable="YES"/>
@@ -18,9 +17,14 @@
         <attribute name="pinID" optional="YES" attributeType="Integer 16" defaultValueString="0" syncable="YES"/>
         <relationship name="photos" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Photo" inverseName="pin" inverseEntity="Photo" syncable="YES"/>
     </entity>
+    <entity name="Search" syncable="YES">
+        <attribute name="accuracy" optional="YES" attributeType="Integer 16" defaultValueString="0" syncable="YES"/>
+        <attribute name="searchString" optional="YES" attributeType="String" syncable="YES"/>
+    </entity>
     <elements>
-        <element name="MapViewInfo" positionX="-36" positionY="18" width="128" height="120"/>
+        <element name="MapViewInfo" positionX="-36" positionY="18" width="128" height="105"/>
         <element name="Photo" positionX="-54" positionY="9" width="128" height="90"/>
         <element name="Pin" positionX="-63" positionY="-18" width="128" height="105"/>
+        <element name="Search" positionX="-54" positionY="36" width="128" height="75"/>
     </elements>
 </model>

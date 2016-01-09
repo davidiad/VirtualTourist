@@ -378,7 +378,6 @@ class MapViewController: UIViewController, MKMapViewDelegate {
                 mapInfo.lon = NSNumber(double: map.centerCoordinate.longitude)
                 mapInfo.latDelta = NSNumber(double: map.region.span.latitudeDelta)
                 mapInfo.lonDelta = NSNumber(double: map.region.span.longitudeDelta)
-                mapInfo.zoom = NSNumber(double: 1.0)
 //            } else {
 //                print("Non-zero count: \(infoArray.count)")
 //            }

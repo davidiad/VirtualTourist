@@ -17,17 +17,12 @@ class MapViewInfo: NSManagedObject {
         static let Lon = "lon"
         static let LatDelta = "latDelta"
         static let LonDelta = "lonDelta"
-        static let Zoom = "zoom"
     }
-    
-    //TODO: zoom is not needed anymore
 
     @NSManaged var lat: NSNumber?
     @NSManaged var lon: NSNumber?
     @NSManaged var latDelta: NSNumber?
     @NSManaged var lonDelta: NSNumber?
-    @NSManaged var zoom: NSNumber?
-    
     
     // standard Core Data init method.
     override init(entity: NSEntityDescription, insertIntoManagedObjectContext context: NSManagedObjectContext?) {
@@ -60,6 +55,5 @@ class MapViewInfo: NSManagedObject {
         lon = dictionary[Keys.Lon] as? NSNumber
         latDelta = dictionary[Keys.LatDelta] as? NSNumber
         lonDelta = dictionary[Keys.LonDelta] as? NSNumber
-        zoom = dictionary[Keys.Zoom] as? NSNumber
     }
 }
