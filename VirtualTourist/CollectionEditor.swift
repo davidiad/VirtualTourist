@@ -99,64 +99,48 @@ class CollectionEditor: UIViewController, MKMapViewDelegate, UICollectionViewDel
             embeddedCollectionView?.deleteSelectedPhotos()
             self.updateBottomButton()
         } else {
-            embeddedCollectionView?.deleteAllPhotos()
-            // fetch the photo url's for this Pin
-            // TODO: move to a better place, and consolidate with similar code in MapViewController
-//            if let searchterm = searchbox.text {
-//                print(searchterm)
-//            }
-            flickr.getFlickrImagesForCoordinates(coordinates!, getTotal:  true, searchtext: searchbox.text) { success, error in
-                
-            }
-            flickr.getFlickrImagesForCoordinates(coordinates!, getTotal: false, searchtext: searchbox.text) { success, error in
+            embeddedCollectionView?.deleteAllPhotos() { success in
                 if success {
-                    for url in self.model.photoArray! {
-                        dispatch_async(dispatch_get_main_queue(), {
-                            let entity = NSEntityDescription.entityForName("Photo", inManagedObjectContext: self.sharedContext)!
-                            let photo = Photo(entity: entity, insertIntoManagedObjectContext: self.sharedContext)
-                            photo.pin = self.currentPin
-                            photo.url = url
-                            
-                            _ = FlickrClient.sharedInstance.taskForImage(photo.url!) { data, error in
-                                
-                                if let error = error {
-                                    print("Photo download error: \(error.localizedDescription)")
-                                }
-                                
-                                if let data = data {
-                                    // Create the image
-                                    let image = UIImage(data: data)
+                    // fetch the photo url's for this Pin
+                    self.flickr.getFlickrImagesForCoordinates(self.coordinates!, getTotal:  true, searchtext: self.searchbox.text) { success, error in
+                    }
+                    self.flickr.getFlickrImagesForCoordinates(self.coordinates!, getTotal: false, searchtext: self.searchbox.text) { success, error in
+                        if success {
+                            for url in self.model.photoArray! {
+                                dispatch_async(dispatch_get_main_queue(), {
+                                    let entity = NSEntityDescription.entityForName("Photo", inManagedObjectContext: self.sharedContext)!
+                                    let photo = Photo(entity: entity, insertIntoManagedObjectContext: self.sharedContext)
+                                    photo.pin = self.currentPin
+                                    photo.url = url
                                     
-                                    // update the model, so that the information gets cached
-                                    photo.photoImage = image
-                                }
+                                    _ = FlickrClient.sharedInstance.taskForImage(photo.url!) { data, error in
+                                        if let error = error {
+                                            print("Photo download error: \(error.localizedDescription)")
+                                        }
+                                        if let data = data {
+                                            // Create the image
+                                            let image = UIImage(data: data)
+                                            
+                                            // update the model, so that the information gets cached
+                                            photo.photoImage = image
+                                        }
+                                    }
+                                })
                             }
-                            
-                            /*older, deprecated download code
-                            let request = NSURLRequest(URL: NSURL(string: url)!)
-                            NSURLConnection.sendAsynchronousRequest(request, queue: NSOperationQueue.mainQueue()) {
-                                (response: NSURLResponse?, data: NSData?, error: NSError?) -> Void in
-                                if let imageData = data as NSData? {
-                                    //
-                                }
-                            }
-                            */
-                        })
+                        } else {
+                            print("Error in getting Flickr Images: \(error)")
+                        }
                     }
                 } else {
-                    print("Error in getting Flickr Images: \(error)")
+                    print("Either not all photos were deleted or a New Collection was not created")
                 }
+                CoreDataStackManager.sharedInstance().saveContext()
             }
-            CoreDataStackManager.sharedInstance().saveContext()
         }
     }
     
     func updateBottomButton() {
-       // if selectedIndexes.count > 0 {
-       //     bottomButton.title = "Remove Selected Photos"
-      //  } else {
-            bottomButton.title = "New Collection"
-       // }
+        bottomButton.title = "New Collection"
     }
     
     //MARK:- Keyboard dismissal

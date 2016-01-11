@@ -420,7 +420,7 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
             }, completion: nil)
     }
     
-    func deleteAllPhotos() {
+    func deleteAllPhotos(completionHandler: (success: Bool) -> Void) {
         // TODO: Can crash when hitting New Collection butt over and over
         // therefore, disable the button first
         if let parentVC = self.parentViewController as? CollectionEditor {
@@ -432,6 +432,12 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
         // need to prevent enabling of butt
         for photo in fetchedResultsController.fetchedObjects as! [Photo] {
             sharedContext.deleteObject(photo)
+        }
+        if fetchedResultsController.fetchedObjects?.count == 0 {
+            completionHandler(success: true)
+        } else {
+            print("Not all photos were deleted")
+            completionHandler(success: false)
         }
     }
     
@@ -448,20 +454,5 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
         
         selectedIndexes = [NSIndexPath]()
     }
-
-    
 }
 
-//extension UIImageView {
-//    public func imageFromUrl(urlString: String) {
-//        if let url = NSURL(string: urlString) {
-//            let request = NSURLRequest(URL: url)
-//            NSURLConnection.sendAsynchronousRequest(request, queue: NSOperationQueue.mainQueue()) {
-//                (response: NSURLResponse?, data: NSData?, error: NSError?) -> Void in
-//                if let imageData = data as NSData? {
-//                    self.image = UIImage(data: imageData)
-//                }
-//            }
-//        }
-//    }
-//}
