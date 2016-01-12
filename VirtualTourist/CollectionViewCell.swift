@@ -21,7 +21,6 @@ class CollectionViewCell: UICollectionViewCell {
         //imageWasDownloaded = false
 //        if self.cellView != nil {
 //            cellView = UIImageView(frame: CGRect(x: 0, y: 0, width: frame.size.width, height: frame.size.height))
-
     }
     
     required init?(coder: NSCoder) {
@@ -58,10 +57,19 @@ class CollectionViewCell: UICollectionViewCell {
         didSet {
             if oldValue == nil {
                 activityView.stopAnimating()
+                userInteractionEnabled = true
                 //TODO: only allow cell userInteraction after *all* cells are downloaded (may be causing possibilty of crash if cells are selected before downloading is done)
                 //self.userInteractionEnabled = true
             }
         }
+    }
+    
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        cellView.image = UIImage(named: "puppy")
+        activityView.startAnimating()
+        userInteractionEnabled = false
+        image = nil
     }
     
 //    //TODO: is this func needed at all, aside from activityView.startAnimating()?

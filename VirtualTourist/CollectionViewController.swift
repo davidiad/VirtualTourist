@@ -42,6 +42,8 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
     
     var sharedContext = CoreDataStackManager.sharedInstance().managedObjectContext
     
+    var userAction: Bool = false
+
     override func viewDidLoad() {
         super.viewDidLoad()
 
@@ -184,24 +186,26 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
         //resetCell(cell)
 
         //var photoImage = UIImage(named: "puppy")
-        var photoImage: UIImage?
+        var image: UIImage?
         let photo = self.fetchedResultsController.objectAtIndexPath(indexPath) as! Photo
         
         //cell.setPhoto(photo)
         
         // Set the Photo Image
         if photo.url == nil || photo.url == "" {
-            //photoImage = UIImage(named: "puppy")
+            cell.cellView.image = UIImage(named: "puppy")
       
         } else if photo.photoImage != nil {
             
             // photoImage is from the cache
-            photoImage = photo.photoImage!
+            image = photo.photoImage!
+            
             //checkPhotoCount(photo)
             //photo.downloaded = true
             
         } else { // "This is the interesting case."- Jason@Udacity. The Photo has an image name, but it is not downloaded yet.
-            
+            // set the default image
+            cell.cellView.image = UIImage(named: "puppy")
             // Start the task that will eventually download the image
             let task = FlickrClient.sharedInstance.taskForImage(photo.url!) { data, error in
                 
@@ -211,7 +215,7 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
                 
                 if let data = data {
                     // Create the image
-                    let image = UIImage(data: data)
+                    image = UIImage(data: data)
                     
                     // update the model, so that the information gets cached
                     photo.photoImage = image
@@ -250,9 +254,9 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
         
         // Configure the cell
         cell.cellView.contentMode = UIViewContentMode.ScaleToFill
-        if photoImage != nil {
-            cell.image = photoImage
-            cell.cellView.image = cell.image
+        if image != nil {
+            cell.cellView.image = image
+            cell.image = image
         }
     }
 
@@ -346,8 +350,7 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
     
     // MARK: - Fetched Results Controller Delegate
     
-    // Whenever changes are made to Core Data the following three methods are invoked. This first method is used to create
-    // three fresh arrays to record the index paths that will be changed.
+    // Whenever changes are made to Core Data the following three methods are invoked. This 1st method is used to create three fresh arrays to record the index paths that will be changed.
     func controllerWillChangeContent(controller: NSFetchedResultsController) {
         // We are about to handle some new changes. Start out with empty arrays for each change type
         insertedIndexPaths = [NSIndexPath]()
@@ -357,11 +360,11 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
         print("in controllerWillChangeContent")
     }
     
-    // The second method may be called multiple times, once for each Color object that is added, deleted, or changed.
+    // The second method may be called multiple times, once for each Photo object that is added, deleted, or changed.
     // We store the index paths into the three arrays.
     func controller(controller: NSFetchedResultsController, didChangeObject anObject: AnyObject, atIndexPath indexPath: NSIndexPath?, forChangeType type: NSFetchedResultsChangeType, newIndexPath: NSIndexPath?) {
         
-        switch type{
+        switch type {
             
         case .Insert:
             print("Insert an item")
@@ -371,11 +374,13 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
             insertedIndexPaths.append(newIndexPath!)
             break
         case .Delete:
-            print("Delete an item")
-            // Here we are noting that a Color instance has been deleted from Core Data. We keep remember its index path
-            // so that we can remove the corresponding cell in "controllerDidChangeContent". The "indexPath" parameter has
-            // value that we want in this case.
-            deletedIndexPaths.append(indexPath!)
+          //  if self.userAction == false { // If the user initiates deletion by tapping the button, we don't want the delegate to delete them again
+                print("Delete an item")
+                // Here we are noting that a Color instance has been deleted from Core Data. We keep remember its index path
+                // so that we can remove the corresponding cell in "controllerDidChangeContent". The "indexPath" parameter has
+                // value that we want in this case.
+                deletedIndexPaths.append(indexPath!)
+          //  }
             break
         case .Update:
             print("Update an item.")
@@ -403,45 +408,54 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
         
         print("in controllerDidChangeContent. changes.count: \(insertedIndexPaths.count + deletedIndexPaths.count)")
         print("updated count: \(updatedIndexPaths.count)")
+        
         collectionView!.performBatchUpdates({() -> Void in
             
             for indexPath in self.insertedIndexPaths {
                 self.collectionView!.insertItemsAtIndexPaths([indexPath])
             }
             
-            for indexPath in self.deletedIndexPaths {
-                self.collectionView!.deleteItemsAtIndexPaths([indexPath])
-            }
-            
+            //if self.userAction == false { // If the user initiates deletion by tapping the button, we don't want the delegate to delete them again
+                for indexPath in self.deletedIndexPaths {
+                    self.collectionView!.deleteItemsAtIndexPaths([indexPath])
+                }
+           // }
             for indexPath in self.updatedIndexPaths {
                 self.collectionView!.reloadItemsAtIndexPaths([indexPath])
             }
             
             }, completion: nil)
+        userAction = true // reset the flag for userAction
     }
     
-    func deleteAllPhotos(completionHandler: (success: Bool) -> Void) {
+        //TODO: called twice when deleting - first time is user driven, and 2nd time is by the delegate noticing the change
+    //TODO: Need a default image, instead of leftover images
+    func deleteAllPhotos(completionHandler: (finishedDeleteAllPhotos: Bool) -> Void) {
+        userAction = true
         // TODO: Can crash when hitting New Collection butt over and over
         // therefore, disable the button first
-        if let parentVC = self.parentViewController as? CollectionEditor {
-                parentVC.bottomButton.enabled = false
+       // if let parentVC = self.parentViewController as? CollectionEditor {
+          //      parentVC.bottomButton.enabled = false
                 // disallow cells to be selected while deletions are happening
                 collectionView?.userInteractionEnabled = false
-        }
+        //}
         //TODO: seems to not finish deletions before button is enabled. Why?
         // need to prevent enabling of butt
         for photo in fetchedResultsController.fetchedObjects as! [Photo] {
             sharedContext.deleteObject(photo)
+            print("deleteing!!!!!!!!!!!!!")
         }
-        if fetchedResultsController.fetchedObjects?.count == 0 {
-            completionHandler(success: true)
-        } else {
-            print("Not all photos were deleted")
-            completionHandler(success: false)
-        }
+       // if fetchedResultsController.fetchedObjects?.count == 0 {
+            print("TRUE finsihed Delete#$^%&*(")
+            completionHandler(finishedDeleteAllPhotos: true)
+       // } else {
+         //   print("Not all photos were deleted")
+        //    completionHandler(success: false)
+       // }
     }
     
     func deleteSelectedPhotos() {
+        userAction = true
         var photosToDelete = [Photo]()
         
         for indexPath in selectedIndexes {

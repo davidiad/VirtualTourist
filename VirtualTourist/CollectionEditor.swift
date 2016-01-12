@@ -99,8 +99,8 @@ class CollectionEditor: UIViewController, MKMapViewDelegate, UICollectionViewDel
             embeddedCollectionView?.deleteSelectedPhotos()
             self.updateBottomButton()
         } else {
-            embeddedCollectionView?.deleteAllPhotos() { success in
-                if success {
+            embeddedCollectionView?.deleteAllPhotos() { finishedDeleteAllPhotos in
+                if finishedDeleteAllPhotos {
                     // fetch the photo url's for this Pin
                     self.flickr.getFlickrImagesForCoordinates(self.coordinates!, getTotal:  true, searchtext: self.searchbox.text) { success, error in
                     }
