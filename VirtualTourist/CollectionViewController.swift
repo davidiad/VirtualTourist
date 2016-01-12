@@ -24,6 +24,7 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
     
     
     let model = VirtualTouristModel.sharedInstance
+    let flickr = FlickrClient.sharedInstance
     var coordinates : CLLocationCoordinate2D?
     var currentPin: Pin?
     var numPhotos: Int?
@@ -296,11 +297,18 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
             } else {
                 parentVC.numPhotosLabel.text = "No photos were found."
             }
-            if photoCounter! <= 0 {
+            if photoCounter! <= 0 || numPhotos == 0 {
                 parentVC.bottomButton.enabled = true
                 // allow cells to be selected
                 collectionView?.userInteractionEnabled = true
             }
+        }
+    }
+    
+    func disableInteraction () {
+        collectionView?.userInteractionEnabled = false
+        if let parentVC = self.parentViewController as? CollectionEditor {
+            parentVC.bottomButton.enabled = false
         }
     }
     
@@ -356,6 +364,9 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
         insertedIndexPaths = [NSIndexPath]()
         deletedIndexPaths = [NSIndexPath]()
         updatedIndexPaths = [NSIndexPath]()
+        
+        // Disable button while changes are happening to avoid conflict by adding new photos while deletions etc are being processed
+        disableInteraction()
         
         print("in controllerWillChangeContent")
     }
@@ -425,35 +436,56 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
             }
             
             }, completion: nil)
-        userAction = true // reset the flag for userAction
+        //userAction = true // reset the flag for userAction
     }
     
         //TODO: called twice when deleting - first time is user driven, and 2nd time is by the delegate noticing the change
     //TODO: Need a default image, instead of leftover images
-    func deleteAllPhotos(completionHandler: (finishedDeleteAllPhotos: Bool) -> Void) {
-        userAction = true
+    //func deleteAllPhotos(completionHandler: (finishedDeleteAllPhotos: Bool) -> Void) {
+    func deleteAllPhotos(searchtext: String?) {
         // TODO: Can crash when hitting New Collection butt over and over
         // therefore, disable the button first
-       // if let parentVC = self.parentViewController as? CollectionEditor {
-          //      parentVC.bottomButton.enabled = false
-                // disallow cells to be selected while deletions are happening
-                collectionView?.userInteractionEnabled = false
-        //}
-        //TODO: seems to not finish deletions before button is enabled. Why?
-        // need to prevent enabling of butt
+        // if let parentVC = self.parentViewController as? CollectionEditor {
+        //      parentVC.bottomButton.enabled = false
+        // disallow cells to be selected while deletions are happening
+        collectionView?.userInteractionEnabled = false
         for photo in fetchedResultsController.fetchedObjects as! [Photo] {
             sharedContext.deleteObject(photo)
             print("deleteing!!!!!!!!!!!!!")
         }
-       // if fetchedResultsController.fetchedObjects?.count == 0 {
-            print("TRUE finsihed Delete#$^%&*(")
-            completionHandler(finishedDeleteAllPhotos: true)
-       // } else {
-         //   print("Not all photos were deleted")
-        //    completionHandler(success: false)
-       // }
+        // fetch the photo url's for this Pin
+        flickr.getFlickrImagesForCoordinates(self.coordinates!, getTotal:  true, searchtext: searchtext) { success, error in
+        }
+        flickr.getFlickrImagesForCoordinates(self.coordinates!, getTotal: false, searchtext: searchtext) { success, error in
+            if success {
+                for url in self.model.photoArray! {
+                    dispatch_async(dispatch_get_main_queue(), {
+                        let entity = NSEntityDescription.entityForName("Photo", inManagedObjectContext: self.sharedContext)!
+                        let photo = Photo(entity: entity, insertIntoManagedObjectContext: self.sharedContext)
+                        photo.pin = self.currentPin
+                        photo.url = url
+                        
+                        _ = self.flickr.taskForImage(photo.url!) { data, error in
+                            if let error = error {
+                                print("Photo download error: \(error.localizedDescription)")
+                            }
+                            if let data = data {
+                                // Create the image
+                                let image = UIImage(data: data)
+                                
+                                // update the model, so that the information gets cached
+                                photo.photoImage = image
+                            }
+                        }
+                    })
+                }
+            } else {
+                print("Error in getting Flickr Images: \(error)")
+            }
+            CoreDataStackManager.sharedInstance().saveContext()
+        }
     }
-    
+
     func deleteSelectedPhotos() {
         userAction = true
         var photosToDelete = [Photo]()

@@ -99,43 +99,44 @@ class CollectionEditor: UIViewController, MKMapViewDelegate, UICollectionViewDel
             embeddedCollectionView?.deleteSelectedPhotos()
             self.updateBottomButton()
         } else {
-            embeddedCollectionView?.deleteAllPhotos() { finishedDeleteAllPhotos in
-                if finishedDeleteAllPhotos {
-                    // fetch the photo url's for this Pin
-                    self.flickr.getFlickrImagesForCoordinates(self.coordinates!, getTotal:  true, searchtext: self.searchbox.text) { success, error in
-                    }
-                    self.flickr.getFlickrImagesForCoordinates(self.coordinates!, getTotal: false, searchtext: self.searchbox.text) { success, error in
-                        if success {
-                            for url in self.model.photoArray! {
-                                dispatch_async(dispatch_get_main_queue(), {
-                                    let entity = NSEntityDescription.entityForName("Photo", inManagedObjectContext: self.sharedContext)!
-                                    let photo = Photo(entity: entity, insertIntoManagedObjectContext: self.sharedContext)
-                                    photo.pin = self.currentPin
-                                    photo.url = url
-                                    
-                                    _ = FlickrClient.sharedInstance.taskForImage(photo.url!) { data, error in
-                                        if let error = error {
-                                            print("Photo download error: \(error.localizedDescription)")
-                                        }
-                                        if let data = data {
-                                            // Create the image
-                                            let image = UIImage(data: data)
-                                            
-                                            // update the model, so that the information gets cached
-                                            photo.photoImage = image
-                                        }
-                                    }
-                                })
-                            }
-                        } else {
-                            print("Error in getting Flickr Images: \(error)")
-                        }
-                    }
-                } else {
-                    print("Either not all photos were deleted or a New Collection was not created")
-                }
-                CoreDataStackManager.sharedInstance().saveContext()
-            }
+            bottomButton.enabled = false
+            embeddedCollectionView?.deleteAllPhotos(self.searchbox.text!) //{ finishedDeleteAllPhotos in
+                //if finishedDeleteAllPhotos {
+//                    // fetch the photo url's for this Pin
+//                    self.flickr.getFlickrImagesForCoordinates(self.coordinates!, getTotal:  true, searchtext: self.searchbox.text) { success, error in
+//                    }
+//                    self.flickr.getFlickrImagesForCoordinates(self.coordinates!, getTotal: false, searchtext: self.searchbox.text) { success, error in
+//                        if success {
+//                            for url in self.model.photoArray! {
+//                                dispatch_async(dispatch_get_main_queue(), {
+//                                    let entity = NSEntityDescription.entityForName("Photo", inManagedObjectContext: self.sharedContext)!
+//                                    let photo = Photo(entity: entity, insertIntoManagedObjectContext: self.sharedContext)
+//                                    photo.pin = self.currentPin
+//                                    photo.url = url
+//                                    
+//                                    _ = FlickrClient.sharedInstance.taskForImage(photo.url!) { data, error in
+//                                        if let error = error {
+//                                            print("Photo download error: \(error.localizedDescription)")
+//                                        }
+//                                        if let data = data {
+//                                            // Create the image
+//                                            let image = UIImage(data: data)
+//                                            
+//                                            // update the model, so that the information gets cached
+//                                            photo.photoImage = image
+//                                        }
+//                                    }
+//                                })
+//                            }
+//                        } else {
+//                            print("Error in getting Flickr Images: \(error)")
+//                        }
+//                    }
+//                } else {
+//                    print("Either not all photos were deleted or a New Collection was not created")
+//                }
+//                CoreDataStackManager.sharedInstance().saveContext()
+           // }
         }
     }
     

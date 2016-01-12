@@ -48,11 +48,6 @@ class CollectionViewCell: UICollectionViewCell {
         }
     }
     
-//    override func prepareForReuse() {
-//        super.prepareForReuse()
-//        cellView.image = nil
-//    }
-    
     var image: UIImage? {
         didSet {
             if oldValue == nil {
