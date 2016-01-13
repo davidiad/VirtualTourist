@@ -119,6 +119,7 @@ class FlickrClient: NSObject {
             /* GUARD: Was there an error? */
             guard (error == nil) else {
                 dispatch_async(dispatch_get_main_queue(), {
+                    //TODO: not using setUIEnabled
                     self.setUIEnabled(enabled: true)
                 })
                 print("There was an error with your request: \(error)")
@@ -181,6 +182,7 @@ class FlickrClient: NSObject {
                         return
                 }
                 self.totalPhotos = Int((photosDictionary["total"] as? String)!)
+                print("total: \(self.totalPhotos)")
                 if self.totalPhotos == nil {
                     dispatch_async(dispatch_get_main_queue(), {
                         self.setUIEnabled(enabled: true)

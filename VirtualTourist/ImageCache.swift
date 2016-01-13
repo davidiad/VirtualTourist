@@ -32,13 +32,13 @@ class ImageCache {
      
          //First try the memory cache
         if let image = inMemoryCache.objectForKey(path) as? UIImage {
-            print("found an image in Memory cache: \(path)")
+            //print("found an image in Memory cache: \(path)")
             return image
         }
         
         // Next Try the hard drive
         if let data = NSData(contentsOfFile: path) {
-            print("Found THIS image on the Hard Drive: \(path)")
+            //print("Found THIS image on the Hard Drive: \(path)")
             return UIImage(data: data)
         }
         
@@ -48,9 +48,9 @@ class ImageCache {
     // MARK: - Saving images
     //TODO: call storeImage
     func storeImage(image: UIImage?, withIdentifier identifier: String) {
-        print("identifier: \(identifier)")
+        //print("identifier: \(identifier)")
         let path = pathForIdentifier(identifier)
-        print("PATH: \(path)")
+        //print("PATH: \(path)")
         
         // If the image is nil, remove images from the cache
         if image == nil {

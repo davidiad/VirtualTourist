@@ -15,7 +15,7 @@ let reuseIdentifier = "Cell"
 var csize: CGSize = CGSizeMake(100, 100)
 
 class CollectionViewController: UICollectionViewController, NSFetchedResultsControllerDelegate {
-    
+    //TODO: Search object does not seem be being saved
     
     // Question: Before enabling the bottom button, so we need to check that all cells have downloaded? Or just the visible ones? Or just that the url's have been fetched? Can I check to see if the cell's photoImage property is not nil? Or might those be deleted from the cache by the system, so unreliable?
     /*
@@ -47,7 +47,7 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
 
     override func viewDidLoad() {
         super.viewDidLoad()
-
+        //print(currentPin)
         // Uncomment the following line to preserve selection between presentations
         // self.clearsSelectionOnViewWillAppear = false
 
@@ -67,8 +67,6 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
         if let error = error {
             print("Error performing initial fetch: \(error)")
         }
-        
-
     }
     
 //    override func viewDidAppear(animated: Bool) {
@@ -90,10 +88,6 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
         csize = CGSize(width: (w - 26)/3, height: (w - 26)/3)
         return csize // The size of one cell
     }
-    
-//    func collectionView(collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, referenceSizeForHeaderInSection section: Int) -> CGSize {
-//        return CGSizeMake(self.view.frame.width, 90)  // Header size
-//    }
     
     func collectionView(collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, insetForSectionAtIndex section: Int) -> UIEdgeInsets {
         //let frame : CGRect = self.view.frame
@@ -138,7 +132,7 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
             if photo.downloaded == true {
                 if photoCounter != nil {
                     photoCounter! -= 1
-                    print(photoCounter!)
+                    //print(photoCounter!)
                 }
             }
         }
@@ -172,7 +166,7 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
     func checkPhotoCount(photo: Photo) {
         if photo.downloaded == false {
             photoCounter! -= 1
-            print("photoCount: \(photoCounter)")
+            //print("photoCount: \(photoCounter)")
         }
         photo.downloaded = true
         if photoCounter <= 0 {
@@ -200,9 +194,6 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
             
             // photoImage is from the cache
             image = photo.photoImage!
-            
-            //checkPhotoCount(photo)
-            //photo.downloaded = true
             
         } else { // "This is the interesting case."- Jason@Udacity. The Photo has an image name, but it is not downloaded yet.
             // set the default image
@@ -246,7 +237,6 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
                     }
                 }
             }
-            //TODO: Stop activity indicator when downloads are complete
             //TODO: New Collection button is grayed out until fetch is complete (or download is complete? check specs)
 
             // This is the custom property on this cell. See CollectionViewCell.swift for details.
@@ -417,8 +407,8 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
     // Notice that all of the changes are performed inside a closure that is handed to the collection view.
     func controllerDidChangeContent(controller: NSFetchedResultsController) {
         
-        print("in controllerDidChangeContent. changes.count: \(insertedIndexPaths.count + deletedIndexPaths.count)")
-        print("updated count: \(updatedIndexPaths.count)")
+        //print("in controllerDidChangeContent. changes.count: \(insertedIndexPaths.count + deletedIndexPaths.count)")
+        //print("updated count: \(updatedIndexPaths.count)")
         
         collectionView!.performBatchUpdates({() -> Void in
             
@@ -440,23 +430,38 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
     }
     
         //TODO: called twice when deleting - first time is user driven, and 2nd time is by the delegate noticing the change
-    //TODO: Need a default image, instead of leftover images
-    //func deleteAllPhotos(completionHandler: (finishedDeleteAllPhotos: Bool) -> Void) {
+ 
     func deleteAllPhotos(searchtext: String?) {
         // TODO: Can crash when hitting New Collection butt over and over
         // therefore, disable the button first
-        // if let parentVC = self.parentViewController as? CollectionEditor {
-        //      parentVC.bottomButton.enabled = false
-        // disallow cells to be selected while deletions are happening
         collectionView?.userInteractionEnabled = false
         for photo in fetchedResultsController.fetchedObjects as! [Photo] {
             sharedContext.deleteObject(photo)
             print("deleteing!!!!!!!!!!!!!")
         }
-        // fetch the photo url's for this Pin
-        flickr.getFlickrImagesForCoordinates(self.coordinates!, getTotal:  true, searchtext: searchtext) { success, error in
+        
+        // Download a new collection of photos
+        flickr.getFlickrImagesForCoordinates(self.coordinates!, getTotal: true, searchtext: searchtext) { success, error in
+            print("START")
+            if searchtext != nil && searchtext != "" {
+                // Insert a new search object is there is an entry in the searchbox
+                let entity = NSEntityDescription.entityForName("Search", inManagedObjectContext: self.sharedContext)!
+                let search = Search(entity: entity, insertIntoManagedObjectContext: self.sharedContext)
+                search.searchString = searchtext
+                self.currentPin?.search = search
+                search.pin = self.currentPin
+                print("CP: \(self.currentPin)")
+                do {
+                    try self.sharedContext.save()
+                } catch {
+                    print("Could not save the search")
+                }
+            } else {
+                print("NO SEARCHTEXT")
+            }
         }
         flickr.getFlickrImagesForCoordinates(self.coordinates!, getTotal: false, searchtext: searchtext) { success, error in
+            print("STARTled")
             if success {
                 for url in self.model.photoArray! {
                     dispatch_async(dispatch_get_main_queue(), {
@@ -500,5 +505,20 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
         
         selectedIndexes = [NSIndexPath]()
     }
+    
+    
+    /* from the docs
+Modifying the Fetch Request
+You cannot simply change the fetch request to modify the results. If you want to change the fetch request, you must:
+If you are using a cache, delete it (using deleteCacheWithName:).
+Typically you should not use a cache if you are changing the fetch request.
+Change the fetch request.
+Invoke performFetch:.
+Handling Object Invalidation
+When a managed object context notifies the fetched results controller that individual objects are invalidated, the controller treats these as deleted objects and sends the proper delegate calls.
+It’s possible for all the objects in a managed object context to be invalidated simultaneously. (For example, as a result of calling reset, or if a store is removed from the the persistent store coordinator.) When this happens, NSFetchedResultsController does not invalidate all objects, nor does it send individual notifications for object deletions. Instead, you must call performFetch: to reset the state of the controller then reload the data in the table view (reloadData).
+iOS Version Issues
+There are several known issues and behavior changes with NSFetchedResultsController on various releases of iOS.
+*/
 }
 

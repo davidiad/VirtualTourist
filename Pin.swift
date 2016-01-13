@@ -21,6 +21,7 @@ class Pin: NSManagedObject, MKAnnotation {
     @NSManaged var lon: NSNumber?
     @NSManaged var pinID: NSNumber?
     @NSManaged var photos: [Photo]
+    @NSManaged var search: Search?
     
 //    private var _coordinate: CLLocationCoordinate2D = CLLocationCoordinate2D(latitude: 0, longitude: 0)
 //    

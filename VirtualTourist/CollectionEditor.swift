@@ -47,7 +47,17 @@ class CollectionEditor: UIViewController, MKMapViewDelegate, UICollectionViewDel
         } else {
             print("no coords in CollectionEditor")
         }
-        
+        if currentPin != nil {
+            //print("IN CEDITOR: \(currentPin)")
+            if currentPin?.search != nil {
+                if let searchtext = currentPin?.search?.searchString {
+                    print("SEARCH FOR: \(searchtext)")
+                    searchbox.text = searchtext
+                } else {
+                    print("NO SEARCHTEXT IN CEDITOR")
+                }
+            }
+        }
     }
 
     override func didReceiveMemoryWarning() {
