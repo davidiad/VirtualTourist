@@ -418,6 +418,7 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
             
             //if self.userAction == false { // If the user initiates deletion by tapping the button, we don't want the delegate to delete them again
                 for indexPath in self.deletedIndexPaths {
+                    print("DELETE in performBatchUpdate")
                     self.collectionView!.deleteItemsAtIndexPaths([indexPath])
                 }
            // }
@@ -436,8 +437,16 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
         // therefore, disable the button first
         collectionView?.userInteractionEnabled = false
         for photo in fetchedResultsController.fetchedObjects as! [Photo] {
-            sharedContext.deleteObject(photo)
+            if photo.managedObjectContext != nil {
+                sharedContext.deleteObject(photo)
+            }
             print("deleteing!!!!!!!!!!!!!")
+            _ = try? sharedContext.save()
+//            do {
+//                sharedContext.save()
+//            } catch {
+//                
+//            }
         }
         
         // Download a new collection of photos
@@ -487,6 +496,7 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
             } else {
                 print("Error in getting Flickr Images: \(error)")
             }
+            //TODO: Make sure all Core Data is on same (in case main) thread
             CoreDataStackManager.sharedInstance().saveContext()
         }
     }
