@@ -34,7 +34,7 @@ let MEDIA = "photos"
 let DATA_FORMAT = "json"
 let NO_JSON_CALLBACK = "1"
 
-let PER_PAGE_DEFAULT = 21
+let PER_PAGE_DEFAULT = 3
 
 class FlickrClient: NSObject {
     
@@ -118,19 +118,12 @@ class FlickrClient: NSObject {
             /* 5 - Check for a successful response */
             /* GUARD: Was there an error? */
             guard (error == nil) else {
-                dispatch_async(dispatch_get_main_queue(), {
-                    //TODO: not using setUIEnabled
-                    self.setUIEnabled(enabled: true)
-                })
                 print("There was an error with your request: \(error)")
                 return
             }
             
             /* GUARD: Did we get a successful 2XX response? */
             guard let statusCode = (response as? NSHTTPURLResponse)?.statusCode where statusCode >= 200 && statusCode <= 299 else {
-                dispatch_async(dispatch_get_main_queue(), {
-                    self.setUIEnabled(enabled: true)
-                })
                 if let response = response as? NSHTTPURLResponse {
                     print("Your request returned an invalid response! Status code: \(response.statusCode)!")
                 } else if let response = response {
@@ -143,9 +136,6 @@ class FlickrClient: NSObject {
             
             /* GUARD: Was there any data returned? */
             guard let data = data else {
-                dispatch_async(dispatch_get_main_queue(), {
-                    self.setUIEnabled(enabled: true)
-                })
                 print("No data was returned by the request!")
                 return
             }
@@ -156,18 +146,12 @@ class FlickrClient: NSObject {
                 parsedResult = try NSJSONSerialization.JSONObjectWithData(data, options: .AllowFragments)
             } catch {
                 parsedResult = nil
-                dispatch_async(dispatch_get_main_queue(), {
-                    self.setUIEnabled(enabled: true)
-                })
                 print("Could not parse the data as JSON: '\(data)'")
                 return
             }
             
             /* GUARD: Did Flickr return an error (stat != ok)? */
             guard let stat = parsedResult["stat"] as? String where stat == "ok" else {
-                dispatch_async(dispatch_get_main_queue(), {
-                    self.setUIEnabled(enabled: true)
-                })
                 print("Flickr API returned an error. See error code and message in \(parsedResult)")
                 return
             }
@@ -175,21 +159,14 @@ class FlickrClient: NSObject {
                 // parse the total # of photos available
                 guard let photosDictionary = parsedResult["photos"] as? NSDictionary
                 else {
-                        dispatch_async(dispatch_get_main_queue(), {
-                            self.setUIEnabled(enabled: true)
-                        })
-                        print("Cannot find key 'photos' in \(parsedResult)")
-                        return
+                    print("Cannot find key 'photos' in \(parsedResult)")
+                    return
                 }
                 self.totalPhotos = Int((photosDictionary["total"] as? String)!)
                 print("total: \(self.totalPhotos)")
                 if self.totalPhotos == nil {
-                    dispatch_async(dispatch_get_main_queue(), {
-                        self.setUIEnabled(enabled: true)
-                    })
                     print("Cannot find key 'total' in \(parsedResult)")
                     return
-                    
                 } else {
                     print("total: \(self.totalPhotos)")
                 }
@@ -207,18 +184,17 @@ class FlickrClient: NSObject {
                 guard let photosDictionary = parsedResult["photos"] as? NSDictionary,
                     photoArray = photosDictionary["photo"] as? [[String: AnyObject]] else {
                         dispatch_async(dispatch_get_main_queue(), {
-                            self.setUIEnabled(enabled: true)
+                            //self.setUIEnabled(enabled: true)
                         })
                         print("Cannot find keys 'photos' and 'photo' in \(parsedResult)")
                         return
                 }
                 
                 // Put all of the url strings into an array, and pass that into the data model to store
+                //TODO: get rid of photoArray, instead use core data directly
                 self.model.photoArray?.removeAll()
                 for photo in photoArray {
                     guard let imageUrlString = photo["url_m"] as? String else {
-                        dispatch_async(dispatch_get_main_queue(), {
-                        })
                         // handle error
                         print("Cannot find key 'url_m' in \(photo)")
                         return
@@ -227,31 +203,6 @@ class FlickrClient: NSObject {
                 }
                 completion(success: true, error: nil)
             }
-//            /* 7 - Generate a random number, then select a random photo */
-//            let randomPhotoIndex = Int(arc4random_uniform(UInt32(photoArray.count)))
-//            let photoDictionary = photoArray[randomPhotoIndex] as [String: AnyObject]
-//            let photoTitle = photoDictionary["title"] as? String /* non-fatal */
-//            
-//            /* GUARD: Does our photo have a key for 'url_m'? */
-//            guard let imageUrlString = photoDictionary["url_m"] as? String else {
-//                dispatch_async(dispatch_get_main_queue(), {
-//                    self.setUIEnabled(enabled: true)
-//                })
-//                print("Cannot find key 'url_m' in \(photoDictionary)")
-//                return
-//            }
-//            
-//            /* 8 - If an image exists at the url, set the image and title */
-//            let imageURL = NSURL(string: imageUrlString)
-//            if let imageData = NSData(contentsOfURL: imageURL!) {
-//                dispatch_async(dispatch_get_main_queue(), {
-//                    //                    self.setUIEnabled(enabled: true)
-//                    //                    self.photoImageView.image = UIImage(data: imageData)
-//                    //                    self.photoTitle.text = photoTitle ?? "(Untitled)"
-//                })
-//            } else {
-//                print("Image does not exist at \(imageURL)")
-//            }
         }
         
         /* 9 - Resume (execute) the task */
@@ -278,39 +229,6 @@ class FlickrClient: NSObject {
         return task
     }
     
-    // SOme possible code for background downloading of images
-//    func backgroundFetch(){
-//        let qualityOfServiceClass = QOS_CLASS_BACKGROUND
-//        let backgroundQueue = dispatch_get_global_queue(qualityOfServiceClass, 0)
-//        
-//        //dispatch in background HERE
-//        dispatch_async(backgroundQueue) {
-//            let path = self.directoryPath()
-//            let pathArray = [path, "\(self.id)"]
-//            let filePath = NSURL.fileURLWithPathComponents(pathArray)!
-//            
-//            let fileManager = NSFileManager()
-//            
-//            if fileManager.fileExistsAtPath(filePath.path!) == false {
-//                //download to documents directory, if image doesn't exist yet
-//                let downloadedImage = NSData(contentsOfURL: NSURL(string:self.url)!)
-//                downloadedImage?.writeToURL(filePath, atomically: true)
-//            }
-//        }
-//    }
-
-    // Configure UI
-    
-    func setUIEnabled(enabled enabled: Bool) {
-//        photoTitle.enabled = enabled
-//        grabImageButton.enabled = enabled
-//        
-//        if enabled {
-//            grabImageButton.alpha = 1.0
-//        } else {
-//            grabImageButton.alpha = 0.5
-//        }
-    }
     
     /* Helper function: Given a dictionary of parameters, convert to a string for a url */
     func escapedParameters(parameters: [String : AnyObject]) -> String {

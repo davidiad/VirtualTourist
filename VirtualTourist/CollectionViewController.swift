@@ -121,21 +121,9 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
         photoCounter = numPhotos
         countDownloaded()
         sendInfoToCollectionEditor()
+        enableNewCollectionButton()
         //return (currentPin?.photos.count)!
         return numPhotos!
-    }
-    
-    // loop through the photos, and decrement photoCounter for each photo that's already been downloaded
-    func countDownloaded() {
-        let arrayOfPhotos = fetchedResultsController.fetchedObjects
-        for photo in arrayOfPhotos as! [Photo] {
-            if photo.downloaded == true {
-                if photoCounter != nil {
-                    photoCounter! -= 1
-                    //print(photoCounter!)
-                }
-            }
-        }
     }
 
     override func collectionView(collectionView: UICollectionView, cellForItemAtIndexPath indexPath: NSIndexPath) -> UICollectionViewCell {
@@ -163,7 +151,22 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
 //        }
 //    }
     
+    // loop through the photos, and decrement photoCounter for each photo that's already been downloaded. Called once, when view first appears
+    func countDownloaded() {
+        let arrayOfPhotos = fetchedResultsController.fetchedObjects
+        for photo in arrayOfPhotos as! [Photo] {
+            if photo.downloaded == true {
+                if photoCounter != nil {
+                    photoCounter! -= 1
+                    //print(photoCounter!)
+                }
+            }
+        }
+    }
+    
+    //TODO: is this func duplicating countDownloaded? No. This func is to update the count for an individual Photo when it has finished downloading.
     func checkPhotoCount(photo: Photo) {
+        // Why false? To make sure we don't count it twice. Because it is about to be set to true
         if photo.downloaded == false {
             photoCounter! -= 1
             //print("photoCount: \(photoCounter)")
@@ -171,7 +174,8 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
         photo.downloaded = true
         if photoCounter <= 0 {
             // enable the New Collection button
-            sendInfoToCollectionEditor()
+            //sendInfoToCollectionEditor()
+            enableNewCollectionButton()
         }
     }
     
@@ -214,6 +218,9 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
                     //TODO: should photo.downloaded already be true? and should be set within the cell where it downloads
                     self.checkPhotoCount(photo)
                     //photo.downloaded = true
+                    
+                    // shorter syntax for saving core data
+                    // _ = try? sharedContext.save()
                     
                     do {
                         try self.sharedContext.save()
@@ -265,7 +272,7 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
             selectedIndexes.append(indexPath)
         }
         
-        // Send the updated info to the button, so it knows what to say
+        // Send the updated info to Collection Editor, so it knows what to say
         sendInfoToCollectionEditor()
         
         if cell.alpha < 1.0 {
@@ -287,6 +294,16 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
             } else {
                 parentVC.numPhotosLabel.text = "No photos were found."
             }
+//            if photoCounter! <= 0 || numPhotos == 0 {
+//                parentVC.bottomButton.enabled = true
+//                // allow cells to be selected
+//                collectionView?.userInteractionEnabled = true
+//            }
+        }
+    }
+    
+    func enableNewCollectionButton () {
+        if let parentVC = self.parentViewController as? CollectionEditor {
             if photoCounter! <= 0 || numPhotos == 0 {
                 parentVC.bottomButton.enabled = true
                 // allow cells to be selected
@@ -433,6 +450,7 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
         //TODO: called twice when deleting - first time is user driven, and 2nd time is by the delegate noticing the change
  
     func deleteAllPhotos(searchtext: String?) {
+        //TODO: get rid of photosArray, should not be needed, get info directly from core data
         // TODO: Can crash when hitting New Collection butt over and over
         // therefore, disable the button first
         collectionView?.userInteractionEnabled = false
@@ -442,11 +460,6 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
             }
             print("deleteing!!!!!!!!!!!!!")
             _ = try? sharedContext.save()
-//            do {
-//                sharedContext.save()
-//            } catch {
-//                
-//            }
         }
         
         // Download a new collection of photos
@@ -496,8 +509,9 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
             } else {
                 print("Error in getting Flickr Images: \(error)")
             }
-            //TODO: Make sure all Core Data is on same (in case main) thread
-            CoreDataStackManager.sharedInstance().saveContext()
+            //TODO: Make sure all Core Data is on same (in this case, main) thread
+            //CoreDataStackManager.sharedInstance().saveContext()
+            _ = try? self.sharedContext.save()
         }
     }
 
@@ -510,7 +524,7 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
         }
         
         for photo in photosToDelete {
-            sharedContext.deleteObject(photo)
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            sharedContext.deleteObject(photo)
         }
         
         selectedIndexes = [NSIndexPath]()
