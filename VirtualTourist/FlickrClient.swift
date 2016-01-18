@@ -34,7 +34,7 @@ let MEDIA = "photos"
 let DATA_FORMAT = "json"
 let NO_JSON_CALLBACK = "1"
 
-let PER_PAGE_DEFAULT = 3
+let PER_PAGE_DEFAULT = 21
 
 class FlickrClient: NSObject {
     
@@ -44,6 +44,7 @@ class FlickrClient: NSObject {
         CoreDataStackManager.sharedInstance().managedObjectContext
     }()
     var totalPhotos: Int?
+    //var searchtext: String?
     //var photoDownloadCounter: Int = 21 //default to 21 images -- will be updated each time a collection view is opened.
     
     // A bit awkward to use getTotal to toggle whether to get the total # of photos, or to get a set of 21 photos. But avoids repeat of most of the code in this func. Is there a better way?
@@ -55,7 +56,16 @@ class FlickrClient: NSObject {
     City is ~11
     Street is ~16
     */
-    func getFlickrImagesForCoordinates(coordinates: CLLocationCoordinate2D, getTotal: Bool, var searchtext: String?,completion: (success: Bool, error: NSError?) -> Void) {
+    
+    // TODO: Wrap 2 calls to getFlickrImagesForCoordinates, 1st with getTotal == true, to fetch total # of images
+//    func getFlickerImages (coordinates: CLLocationCoordinate2D, searchtext: String?) {
+//        totalPhotos = nil // reset totalPhotos (TODO: is this where the bug lies?)
+//        getFlickrImagesForCoordinates(coordinates: coordinates, getTotal: true, searchtext: searchtext { success, error in
+//            
+//        }
+//    }
+    
+    func getFlickrImagesForCoordinates(coordinates: CLLocationCoordinate2D, getTotal: Bool, searchtext: String?,completion: (success: Bool, error: NSError?) -> Void) {
         let lat = String(coordinates.latitude)
         let lon = String(coordinates.longitude)
         
@@ -68,8 +78,9 @@ class FlickrClient: NSObject {
         if searchtext != nil {
             text = "\(searchtext!)"
         }
-        
+        print("*********totalPhotos******** \(totalPhotos)")
         // calculate which page to use
+     
         if totalPhotos != nil {
             if totalPhotos > PER_PAGE_DEFAULT {
                 // Even though the "total" may be over 4000, Flickr will only let you access the first 4000

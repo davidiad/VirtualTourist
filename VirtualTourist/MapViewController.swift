@@ -48,11 +48,6 @@ class MapViewController: UIViewController, MKMapViewDelegate {
         //TODO: convert to switch statement. Not necessary, but cleaner code
         if gestureRecognizer.state == UIGestureRecognizerState.Began { // allows only 1 pin per touch
 
-            //pinDeselected = false
-            
-//            switch gestureRecognizer.state {
-//            case .Began:
-            print("began gesture state")
             // Add a new Pin object to data store
             // First, create a dictionary to init the Pin
             let pinDictionary = [
@@ -78,7 +73,7 @@ class MapViewController: UIViewController, MKMapViewDelegate {
         } else if gestureRecognizer.state == UIGestureRecognizerState.Ended {
             // fetch the photo url's for this Pin
             flickr.getFlickrImagesForCoordinates(newCoordinates, getTotal: true, searchtext: nil) { success, error in
-                print("getTotal was true")
+                //print("getTotal was true")
             }
             flickr.getFlickrImagesForCoordinates(newCoordinates, getTotal:  false, searchtext: nil) { success, error in
                 if success {
@@ -88,16 +83,6 @@ class MapViewController: UIViewController, MKMapViewDelegate {
                             let photo = Photo(entity: entity, insertIntoManagedObjectContext: self.sharedContext)
                             photo.pin = self.currentPin
                             photo.url = url
-                            
-                            /*// deprecated method to download image
-                            let request = NSURLRequest(URL: NSURL(string: url)!)
-                            NSURLConnection.sendAsynchronousRequest(request, queue: NSOperationQueue.mainQueue()) {
-                            (response: NSURLResponse?, data: NSData?, error: NSError?) -> Void in
-                            if let imageData = data as NSData? {
-                            //self.image = UIImage(data: imageData)
-                            }
-                            }
-                            // */
                             
                             _ = FlickrClient.sharedInstance.taskForImage(photo.url!) { data, error in
                                 
@@ -122,31 +107,13 @@ class MapViewController: UIViewController, MKMapViewDelegate {
             }
             
             
-            //            if gestureRecognizer.state == UIGestureRecognizerState.Ended {
-            //                let touchPoint = gestureRecognizer.locationInView(map)
-            //                let newCoordinates = map.convertPoint(touchPoint, toCoordinateFromView: map)
-            //                print(newCoordinates)
-            //            }
-            
             CoreDataStackManager.sharedInstance().saveContext()
-            //        }
-            
-            //        if (annotation.state == UIGestureRecognizerState.Ended)
-            //        {
-            //            [self.mapView removeGestureRecognizer:sender];
-            //        }
         }
     }
     
     func displayPins(pinArray: [Pin]) {
         
         for pin in pinArray {
-            print("In displayPins: \(pin.coordinate)")
-            
-//            let lat = CLLocationDegrees(pin.lat!)
-//            let lon = CLLocationDegrees(pin.lon!)
-            
-
             let name = String(pin.objectID.URIRepresentation())   //String(lat) + ", " + String(lon)
             
             pin.title = name  // eventually should be able to move this value into a stored property of Pin
@@ -202,12 +169,6 @@ class MapViewController: UIViewController, MKMapViewDelegate {
 //    }
     
     func gestureRecognizer(gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWithGestureRecognizer otherGestureRecognizer: UIGestureRecognizer) -> Bool {
-//        if gestureRecognizer is UITapGestureRecognizer {
-//            return true
-//        } else {
-//            return false
-//        }
-        print("in simultaneous")
         return true
     }
     
