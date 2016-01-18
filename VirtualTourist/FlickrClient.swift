@@ -34,7 +34,7 @@ let MEDIA = "photos"
 let DATA_FORMAT = "json"
 let NO_JSON_CALLBACK = "1"
 
-let PER_PAGE_DEFAULT = 21
+let PER_PAGE_DEFAULT = 2
 
 class FlickrClient: NSObject {
     

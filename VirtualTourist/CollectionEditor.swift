@@ -47,8 +47,11 @@ class CollectionEditor: UIViewController, MKMapViewDelegate, UICollectionViewDel
         } else {
             print("no coords in CollectionEditor")
         }
+    }
+    
+    override func viewDidAppear(animated: Bool) {
         if currentPin != nil {
-            //print("IN CEDITOR: \(currentPin)")
+            print("IN CEDITOR: \(currentPin)")
             if currentPin?.search != nil {
                 if let searchtext = currentPin?.search?.searchString {
                     print("SEARCH FOR: \(searchtext)")
@@ -109,7 +112,28 @@ class CollectionEditor: UIViewController, MKMapViewDelegate, UICollectionViewDel
             embeddedCollectionView?.deleteSelectedPhotos()
             self.updateBottomButton()
         } else {
+            
             bottomButton.enabled = false
+            
+            if searchbox.text != nil && searchbox.text != "" {
+                dispatch_async(dispatch_get_main_queue()) {
+                    // Insert a new search object if there is an entry in the searchbox
+                    let entity = NSEntityDescription.entityForName("Search", inManagedObjectContext: self.sharedContext)!
+                    let search = Search(entity: entity, insertIntoManagedObjectContext: self.sharedContext)
+                    search.searchString = self.searchbox.text
+                    self.currentPin?.search = search
+                    search.pin = self.currentPin
+                    print("CP: \(self.currentPin)")
+                    do {
+                        try self.sharedContext.save()
+                    } catch {
+                        print("Could not save the search")
+                    }
+                }
+            } else {
+                print("NO SEARCHTEXT")
+            }
+            
             embeddedCollectionView?.deleteAllPhotos(self.searchbox.text!) //{ finishedDeleteAllPhotos in
                 //if finishedDeleteAllPhotos {
 //                    // fetch the photo url's for this Pin

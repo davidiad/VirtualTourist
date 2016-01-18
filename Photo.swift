@@ -71,6 +71,8 @@ class Photo: NSManagedObject {
                     
                 } else {
                     print("No URL string")
+                    // TODO: Got this warning right after this line printed.
+                    /*An NSManagedObjectContext delegate overrode fault handling behavior to silently delete the object with ID '0xd0000000002c0004 <x-coredata://139002A6-5F48-41FF-ABC2-1C3569BB29D8/Photo/p11>' and substitute nil/0 for all property values instead of throwing.*/
                 }
             }
         }

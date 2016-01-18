@@ -464,34 +464,34 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
         //TODO: get rid of photosArray, should not be needed, get info directly from core data
         // TODO: Can crash when hitting New Collection butt over and over
         // therefore, disable the button first
+        //TODO: but, don't want to disable scrolling in collection view, so disable per cell
         collectionView?.userInteractionEnabled = false
         for photo in fetchedResultsController.fetchedObjects as! [Photo] {
             if photo.managedObjectContext != nil {
                 sharedContext.deleteObject(photo)
             }
-            print("deleteing!!!!!!!!!!!!!")
-            _ = try? sharedContext.save()
+            saveContext()
         }
         
         // Download a new collection of photos
         flickr.getFlickrImagesForCoordinates(self.coordinates!, getTotal: true, searchtext: searchtext) { success, error in
             print("START")
-            if searchtext != nil && searchtext != "" {
-                // Insert a new search object is there is an entry in the searchbox
-                let entity = NSEntityDescription.entityForName("Search", inManagedObjectContext: self.sharedContext)!
-                let search = Search(entity: entity, insertIntoManagedObjectContext: self.sharedContext)
-                search.searchString = searchtext
-                self.currentPin?.search = search
-                search.pin = self.currentPin
-                print("CP: \(self.currentPin)")
-                do {
-                    try self.sharedContext.save()
-                } catch {
-                    print("Could not save the search")
-                }
-            } else {
-                print("NO SEARCHTEXT")
-            }
+//            if searchtext != nil && searchtext != "" {
+//                // Insert a new search object if there is an entry in the searchbox
+//                let entity = NSEntityDescription.entityForName("Search", inManagedObjectContext: self.sharedContext)!
+//                let search = Search(entity: entity, insertIntoManagedObjectContext: self.sharedContext)
+//                search.searchString = searchtext
+//                self.currentPin?.search = search
+//                search.pin = self.currentPin
+//                print("CP: \(self.currentPin)")
+//                do {
+//                    try self.sharedContext.save()
+//                } catch {
+//                    print("Could not save the search")
+//                }
+//            } else {
+//                print("NO SEARCHTEXT")
+//            }
         }
         flickr.getFlickrImagesForCoordinates(self.coordinates!, getTotal: false, searchtext: searchtext) { success, error in
             print("STARTled")
@@ -522,9 +522,7 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
             }
             //TODO: Make sure all Core Data is on same (in this case, main) thread
             //CoreDataStackManager.sharedInstance().saveContext()
-             dispatch_async(dispatch_get_main_queue()) {
-                _ = try? self.sharedContext.save()
-            }
+            self.saveContext()
         }
     }
 
@@ -537,10 +535,17 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
         }
         
         for photo in photosToDelete {
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            sharedContext.deleteObject(photo)
+            sharedContext.deleteObject(photo)
         }
         
         selectedIndexes = [NSIndexPath]()
+    }
+    
+    //MARK:- Save Managed Object Context
+    func saveContext() {
+        dispatch_async(dispatch_get_main_queue()) {
+            _ = try? self.sharedContext.save()
+        }
     }
     
     
