@@ -71,5 +71,13 @@ class Photo: NSManagedObject {
 
         }
     }
+    
+    // TODO: delete the underlaying image file when Photo is deleted from Core Data
+    override func prepareForDeletion() {
+        // This func is called when an object is deleted
+        // get the filepath from the object
+        // check if the image exists at the filepath
+        // delete the undelaying file in the Documents Directory
+    }
 
 }
