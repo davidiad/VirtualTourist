@@ -59,18 +59,24 @@ class Photo: NSManagedObject {
         }
         set {
             //TODO: got a crash here when unwrapping optional while clicking a cell to mark for removal or clicking new collection button multiple times
-            if url != nil {
-                let convertedUrl = NSURL(fileURLWithPath: url!)
-                let fileName = convertedUrl.lastPathComponent
-            
-                VirtualTouristModel.Caches.imageCache.storeImage(newValue, withIdentifier: fileName!)
-                downloaded = true
-            } else {
-                print("No URL string")
+            // It always pops up when concurrency debug is on,
+            // Therefore, try putting on main thread to avoid that problem
+            dispatch_async(dispatch_get_main_queue()) {
+                if self.url != nil {
+                    let convertedUrl = NSURL(fileURLWithPath: self.url!)
+                    let fileName = convertedUrl.lastPathComponent
+                    
+                    VirtualTouristModel.Caches.imageCache.storeImage(newValue, withIdentifier: fileName!)
+                    self.downloaded = true
+                    
+                } else {
+                    print("No URL string")
+                }
             }
-
         }
     }
+    
+    //TODO: remove debug argument before submitting app: -com.apple.CoreData.ConcurrencyDebug 1
     
     // TODO: delete the underlaying image file when Photo is deleted from Core Data
     override func prepareForDeletion() {

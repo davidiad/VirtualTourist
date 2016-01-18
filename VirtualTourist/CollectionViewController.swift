@@ -14,6 +14,10 @@ let reuseIdentifier = "Cell"
 //let sectionInsets = UIEdgeInsets(top: 1.0, left: 1.0, bottom: 1.0, right: 1.0)
 var csize: CGSize = CGSizeMake(100, 100)
 
+//TODO: Collection view interaction scrolling disabled while New Collection is loading -- should b enabled
+//TODO: clicking twice quickly allows double the #
+//TODO: when a search term is entered, first tap finds 0 photos
+
 class CollectionViewController: UICollectionViewController, NSFetchedResultsControllerDelegate {
     //TODO: Search object does not seem be being saved
     
@@ -166,12 +170,15 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
     
     //TODO: is this func duplicating countDownloaded? No. This func is to update the count for an individual Photo when it has finished downloading.
     func checkPhotoCount(photo: Photo) {
-        // Why false? To make sure we don't count it twice. Because it is about to be set to true
-        if photo.downloaded == false {
-            photoCounter! -= 1
-            //print("photoCount: \(photoCounter)")
+        // Why false? To make sure we don't count the photo as downloaded twice. Because photo.downloaded is about to be set to true
+        dispatch_async(dispatch_get_main_queue()) {
+            if photo.downloaded == false {
+                self.photoCounter! -= 1
+                //print("photoCount: \(photoCounter)")
+            }
+            
+            photo.downloaded = true
         }
-        photo.downloaded = true
         if photoCounter <= 0 {
             // enable the New Collection button
             //sendInfoToCollectionEditor()
@@ -220,13 +227,17 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
                     //photo.downloaded = true
                     
                     // shorter syntax for saving core data
-                    // _ = try? sharedContext.save()
-                    
-                    do {
-                        try self.sharedContext.save()
-                    } catch {
-                        print("error in saving the Photo to core data")
+                    dispatch_async(dispatch_get_main_queue()) {
+                        _ = try? self.sharedContext.save()
                     }
+                    
+//                    do {
+//                         dispatch_async(dispatch_get_main_queue()) {
+//                        try self.sharedContext.save()
+//                        }
+//                    } catch {
+//                        print("error in saving the Photo to core data")
+//                    }
                     
                     // Will this be handled by FetchedResultsController?
 //                    // update the cell later, on the main thread
@@ -511,7 +522,9 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
             }
             //TODO: Make sure all Core Data is on same (in this case, main) thread
             //CoreDataStackManager.sharedInstance().saveContext()
-            _ = try? self.sharedContext.save()
+             dispatch_async(dispatch_get_main_queue()) {
+                _ = try? self.sharedContext.save()
+            }
         }
     }
 
