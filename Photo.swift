@@ -108,4 +108,17 @@ class Photo: NSManagedObject {
         }
     }
 
+    // helper func
+    func getFileName() -> String {
+        var fileName: String = ""
+        dispatch_async(dispatch_get_main_queue()) {
+            if self.url != nil {
+                let convertedUrl = NSURL(fileURLWithPath: self.url!)
+                if convertedUrl.lastPathComponent != nil {
+                    fileName = convertedUrl.lastPathComponent!
+                }
+            }
+        }
+        return fileName
+    }
 }
