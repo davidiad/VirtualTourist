@@ -53,6 +53,7 @@ class Photo: NSManagedObject {
     var photoImage: UIImage? {
         get {
             let convertedUrl = NSURL(fileURLWithPath: url!)
+            print("Converted: \(convertedUrl)")
             let fileName = convertedUrl.lastPathComponent
             
             return VirtualTouristModel.Caches.imageCache.imageWithIdentifier(fileName!)
@@ -65,7 +66,7 @@ class Photo: NSManagedObject {
                 if self.url != nil {
                     let convertedUrl = NSURL(fileURLWithPath: self.url!)
                     let fileName = convertedUrl.lastPathComponent
-                    
+                    print("SET: \(fileName)")
                     VirtualTouristModel.Caches.imageCache.storeImage(newValue, withIdentifier: fileName!)
                     self.downloaded = true
                     
@@ -88,37 +89,34 @@ class Photo: NSManagedObject {
         // delete the undelaying file in the Documents Directory
 
         let fileManager = NSFileManager.defaultManager()
-        let documentsDirectoryPath:String = NSSearchPathForDirectoriesInDomains(NSSearchPathDirectory.DocumentDirectory, NSSearchPathDomainMask.UserDomainMask, true)[0]// as! String
+        let documentsDirectoryPath: String = NSSearchPathForDirectoriesInDomains(NSSearchPathDirectory.DocumentDirectory, NSSearchPathDomainMask.UserDomainMask, true)[0]// as! String
+        print("DDP: \(documentsDirectoryPath)")
         
-        //TODO: put into helper func
-        let convertedUrl = NSURL(fileURLWithPath: url!)
-        let fileName = convertedUrl.lastPathComponent
-        
-        let fullUrl = documentsDirectoryPath + "/" + fileName!
-        
-        if fileManager.fileExistsAtPath(fullUrl) {
-            print("\(fullUrl) exists")
+        let fullDocsUrl = documentsDirectoryPath + "/" + getFileID()
+            print("\(fullDocsUrl)")
+        if fileManager.fileExistsAtPath(fullDocsUrl) {
+            
             do {
-                try fileManager.removeItemAtPath(fullUrl)
+                try fileManager.removeItemAtPath(fullDocsUrl)
+                print("successful remove: \(fullDocsUrl)")
             } catch {
-                print("full no^^^^^^^^ \(fullUrl)")
+                print("Could not remove: \(fullDocsUrl)")
             }
-        } else {
-            print("FULLURL: \(fullUrl)")
         }
     }
 
     // helper func
-    func getFileName() -> String {
-        var fileName: String = ""
+    func getFileID() -> String {
+        var fileID: String = ""
         dispatch_async(dispatch_get_main_queue()) {
             if self.url != nil {
                 let convertedUrl = NSURL(fileURLWithPath: self.url!)
                 if convertedUrl.lastPathComponent != nil {
-                    fileName = convertedUrl.lastPathComponent!
+                    fileID = convertedUrl.lastPathComponent!
                 }
             }
         }
-        return fileName
+        print("fileName: \(fileID)")
+        return fileID
     }
 }
