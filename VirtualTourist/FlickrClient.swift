@@ -19,7 +19,7 @@ let CONTENT_TYPE = "1"
 let MEDIA = "photos"
 let DATA_FORMAT = "json"
 let NO_JSON_CALLBACK = "1"
-let PER_PAGE_DEFAULT = 2
+let PER_PAGE_DEFAULT = 21
 
 class FlickrClient: NSObject {
     //TODO: reduce accuracy if 0 photos are found, until either at least 1 is found, or "No Photos found" is displayed

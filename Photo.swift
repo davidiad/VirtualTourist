@@ -52,11 +52,11 @@ class Photo: NSManagedObject {
     // So, using just the last part of the url as the identifier
     var photoImage: UIImage? {
         get {
-            let convertedUrl = NSURL(fileURLWithPath: url!)
-            print("Converted: \(convertedUrl)")
-            let fileName = convertedUrl.lastPathComponent
+//            let convertedUrl = NSURL(fileURLWithPath: url!)
+//            print("Converted: \(convertedUrl)")
+//            let fileName = convertedUrl.lastPathComponent
             
-            return VirtualTouristModel.Caches.imageCache.imageWithIdentifier(fileName!)
+            return VirtualTouristModel.Caches.imageCache.imageWithIdentifier(getFileID())
         }
         set {
             //TODO: got a crash here when unwrapping optional while clicking a cell to mark for removal or clicking new collection button multiple times
@@ -64,10 +64,10 @@ class Photo: NSManagedObject {
             // Therefore, try putting on main thread to avoid that problem
             dispatch_async(dispatch_get_main_queue()) {
                 if self.url != nil {
-                    let convertedUrl = NSURL(fileURLWithPath: self.url!)
-                    let fileName = convertedUrl.lastPathComponent
-                    print("SET: \(fileName)")
-                    VirtualTouristModel.Caches.imageCache.storeImage(newValue, withIdentifier: fileName!)
+//                    let convertedUrl = NSURL(fileURLWithPath: self.url!)
+//                    let fileName = convertedUrl.lastPathComponent
+//                    print("SET: \(fileName)")
+                    VirtualTouristModel.Caches.imageCache.storeImage(newValue, withIdentifier: self.getFileID())
                     self.downloaded = true
                     
                 } else {
@@ -93,7 +93,7 @@ class Photo: NSManagedObject {
         print("DDP: \(documentsDirectoryPath)")
         
         let fullDocsUrl = documentsDirectoryPath + "/" + getFileID()
-            print("\(fullDocsUrl)")
+           // print("\(fullDocsUrl)")
         if fileManager.fileExistsAtPath(fullDocsUrl) {
             
             do {
@@ -108,15 +108,10 @@ class Photo: NSManagedObject {
     // helper func
     func getFileID() -> String {
         var fileID: String = ""
-        dispatch_async(dispatch_get_main_queue()) {
-            if self.url != nil {
-                let convertedUrl = NSURL(fileURLWithPath: self.url!)
-                if convertedUrl.lastPathComponent != nil {
-                    fileID = convertedUrl.lastPathComponent!
-                }
-            }
+        if url != nil {
+            let convertedUrl = NSURL(fileURLWithPath: url!)
+            fileID = convertedUrl.lastPathComponent!
         }
-        print("fileName: \(fileID)")
         return fileID
     }
 }
