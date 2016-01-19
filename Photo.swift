@@ -86,6 +86,26 @@ class Photo: NSManagedObject {
         // get the filepath from the object
         // check if the image exists at the filepath
         // delete the undelaying file in the Documents Directory
+
+        let fileManager = NSFileManager.defaultManager()
+        let documentsDirectoryPath:String = NSSearchPathForDirectoriesInDomains(NSSearchPathDirectory.DocumentDirectory, NSSearchPathDomainMask.UserDomainMask, true)[0]// as! String
+        
+        //TODO: put into helper func
+        let convertedUrl = NSURL(fileURLWithPath: url!)
+        let fileName = convertedUrl.lastPathComponent
+        
+        let fullUrl = documentsDirectoryPath + "/" + fileName!
+        
+        if fileManager.fileExistsAtPath(fullUrl) {
+            print("\(fullUrl) exists")
+            do {
+                try fileManager.removeItemAtPath(fullUrl)
+            } catch {
+                print("full no^^^^^^^^ \(fullUrl)")
+            }
+        } else {
+            print("FULLURL: \(fullUrl)")
+        }
     }
 
 }

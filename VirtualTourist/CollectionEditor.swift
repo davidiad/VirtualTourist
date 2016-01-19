@@ -38,15 +38,17 @@ class CollectionEditor: UIViewController, MKMapViewDelegate, UICollectionViewDel
         searchbox.delegate = self
         mapView.delegate = self
         let span = MKCoordinateSpanMake(0.25, 0.25)
-        if coordinates != nil {
-            mapView.centerCoordinate = coordinates!
-            let region = MKCoordinateRegionMake(coordinates!, span)
-            mapView.region = region
-            placePin()
-
-        } else {
-            print("no coords in CollectionEditor")
-        }
+        //dispatch_async(dispatch_get_main_queue()) {
+            if self.coordinates != nil {
+                self.mapView.centerCoordinate = self.coordinates!
+                let region = MKCoordinateRegionMake(self.coordinates!, span)
+                self.mapView.region = region
+                self.placePin()
+                
+            } else {
+                print("no coords in CollectionEditor")
+            }
+        //}
     }
     
     override func viewDidAppear(animated: Bool) {
