@@ -59,7 +59,7 @@ class Photo: NSManagedObject {
             return VirtualTouristModel.Caches.imageCache.imageWithIdentifier(getFileID())
         }
         set {
-            //TODO: got a crash here when unwrapping optional while clicking a cell to mark for removal or clicking new collection button multiple times
+            //TODO: got a crash here when clicking a cell to mark for removal or clicking new collection button multiple times
             // It always pops up when concurrency debug is on,
             // Therefore, try putting on main thread to avoid that problem
             dispatch_async(dispatch_get_main_queue()) {

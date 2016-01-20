@@ -110,69 +110,33 @@ class CollectionEditor: UIViewController, MKMapViewDelegate, UICollectionViewDel
     }
     
     @IBAction func bottomButtonTapped(sender: AnyObject) {
-        if embeddedCollectionView?.selectedIndexes.count > 0 {
-            embeddedCollectionView?.deleteSelectedPhotos()
-            self.updateBottomButton()
-        } else {
+        
+        if embeddedCollectionView?.selectedIndexes.count <= 0 {
             
             bottomButton.enabled = false
-            
-            if searchbox.text != nil && searchbox.text != "" {
-                dispatch_async(dispatch_get_main_queue()) {
-                    // Insert a new search object if there is an entry in the searchbox
-                    let entity = NSEntityDescription.entityForName("Search", inManagedObjectContext: self.sharedContext)!
-                    let search = Search(entity: entity, insertIntoManagedObjectContext: self.sharedContext)
-                    search.searchString = self.searchbox.text
-                    self.currentPin?.search = search
-                    search.pin = self.currentPin
-                    print("CP: \(self.currentPin)")
-                    do {
-                        try self.sharedContext.save()
-                    } catch {
-                        print("Could not save the search")
+            print("BB TAPPED")
+            if embeddedCollectionView?.buttonTapAllowed == true { //Check to make sure we're not in the middle of deleting old photos and fetching new ones
+                if searchbox.text != nil && searchbox.text != "" {
+                    dispatch_async(dispatch_get_main_queue()) {
+                        // Insert a new search object if there is an entry in the searchbox
+                        let entity = NSEntityDescription.entityForName("Search", inManagedObjectContext: self.sharedContext)!
+                        let search = Search(entity: entity, insertIntoManagedObjectContext: self.sharedContext)
+                        search.searchString = self.searchbox.text
+                        self.currentPin?.search = search
+                        search.pin = self.currentPin
+                        do {
+                            try self.sharedContext.save()
+                        } catch {
+                            print("Could not save the search")
+                        }
                     }
                 }
-            } else {
-                print("NO SEARCHTEXT")
+                embeddedCollectionView?.deleteAllPhotos(self.searchbox.text!)
             }
-            
-            embeddedCollectionView?.deleteAllPhotos(self.searchbox.text!) //{ finishedDeleteAllPhotos in
-                //if finishedDeleteAllPhotos {
-//                    // fetch the photo url's for this Pin
-//                    self.flickr.getFlickrImagesForCoordinates(self.coordinates!, getTotal:  true, searchtext: self.searchbox.text) { success, error in
-//                    }
-//                    self.flickr.getFlickrImagesForCoordinates(self.coordinates!, getTotal: false, searchtext: self.searchbox.text) { success, error in
-//                        if success {
-//                            for url in self.model.photoArray! {
-//                                dispatch_async(dispatch_get_main_queue(), {
-//                                    let entity = NSEntityDescription.entityForName("Photo", inManagedObjectContext: self.sharedContext)!
-//                                    let photo = Photo(entity: entity, insertIntoManagedObjectContext: self.sharedContext)
-//                                    photo.pin = self.currentPin
-//                                    photo.url = url
-//                                    
-//                                    _ = FlickrClient.sharedInstance.taskForImage(photo.url!) { data, error in
-//                                        if let error = error {
-//                                            print("Photo download error: \(error.localizedDescription)")
-//                                        }
-//                                        if let data = data {
-//                                            // Create the image
-//                                            let image = UIImage(data: data)
-//                                            
-//                                            // update the model, so that the information gets cached
-//                                            photo.photoImage = image
-//                                        }
-//                                    }
-//                                })
-//                            }
-//                        } else {
-//                            print("Error in getting Flickr Images: \(error)")
-//                        }
-//                    }
-//                } else {
-//                    print("Either not all photos were deleted or a New Collection was not created")
-//                }
-//                CoreDataStackManager.sharedInstance().saveContext()
-           // }
+        } else {
+            print("BB remove TAPPED")
+            embeddedCollectionView?.deleteSelectedPhotos()
+            updateBottomButton()
         }
     }
     

@@ -19,7 +19,7 @@ let CONTENT_TYPE = "1"
 let MEDIA = "photos"
 let DATA_FORMAT = "json"
 let NO_JSON_CALLBACK = "1"
-let PER_PAGE_DEFAULT = 21
+let PER_PAGE_DEFAULT = 2
 
 class FlickrClient: NSObject {
     //TODO: reduce accuracy if 0 photos are found, until either at least 1 is found, or "No Photos found" is displayed
@@ -29,8 +29,6 @@ class FlickrClient: NSObject {
         CoreDataStackManager.sharedInstance().managedObjectContext
     }()
     var totalPhotos: Int?
-    //var searchtext: String?
-    //var photoDownloadCounter: Int = 21 //default to 21 images -- will be updated each time a collection view is opened.
     
     // A bit awkward to use getTotal to toggle whether to get the total # of photos, or to get a set of 21 photos. But avoids repeat of most of the code in this func. Is there a better way?
     // fist time calling this, accuracy is set to 16. If no photos returned, reduce accuracy by 1 and call again until at least 1 photo is returned
@@ -76,11 +74,10 @@ class FlickrClient: NSObject {
                 let pages = Int(totalPhotos! / PER_PAGE_DEFAULT)
                 let randomPageIndex = Int(arc4random_uniform(UInt32(pages)))
                 page = String(randomPageIndex)
-                print("PAGE: \(page)")
             }
         }
         
-        // if we are only trying to get the total # of photos, no need to get more than 1 page with 1 photo in it.
+        // if we are only trying to extract the total # of photos from the JSON, no need to get more than 1 page with 1 photo in it.
         if getTotal {
             per_page = "1"
         }

@@ -47,7 +47,8 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
     
     var sharedContext = CoreDataStackManager.sharedInstance().managedObjectContext
     
-    var userAction: Bool = false
+    // Additional safeguard against rapidly repeated tapping of New Collection button
+    var buttonTapAllowed: Bool = true
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -148,13 +149,6 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
         return cell
     }
     
-    //TODO: count cells to discover whether resetting the image is keeping the activity indicator from showing when it should
-//    func resetCell(cell: CollectionViewCell) {
-//        if cell.cellView.image != nil {
-//            cell.cellView.image = nil
-//        }
-//    }
-    
     // loop through the photos, and decrement photoCounter for each photo that's already been downloaded. Called once, when view first appears
     func countDownloaded() {
         let arrayOfPhotos = fetchedResultsController.fetchedObjects
@@ -187,15 +181,11 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
     }
     
     // Configure cell for image cache etc
-//    func configureCell(cell: TaskCancelingTableViewCell, movie: Movie) {
     func configureCell(cell: CollectionViewCell, indexPath: NSIndexPath) {
-        //resetCell(cell)
-
-        //var photoImage = UIImage(named: "puppy")
+ 
         var image: UIImage?
         let photo = self.fetchedResultsController.objectAtIndexPath(indexPath) as! Photo
         
-        //cell.setPhoto(photo)
         
         // Set the Photo Image
         if photo.url == nil || photo.url == "" {
@@ -220,29 +210,22 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
                     // Create the image
                     image = UIImage(data: data)
                     
-                    // update the model, so that the information gets cached
-                    photo.photoImage = image
-                    //TODO: should photo.downloaded already be true? and should be set within the cell where it downloads
-                    self.checkPhotoCount(photo)
-                    //photo.downloaded = true
-                    
-                    // shorter syntax for saving core data
                     dispatch_async(dispatch_get_main_queue()) {
+                        // update the model, so that the information gets cached
+                        photo.photoImage = image
+                        self.checkPhotoCount(photo)
+                        
+                        // shorter syntax for saving core data
                         _ = try? self.sharedContext.save()
                     }
                     
-//                    do {
-//                         dispatch_async(dispatch_get_main_queue()) {
-//                        try self.sharedContext.save()
+                    //                    do {
+                    //                         dispatch_async(dispatch_get_main_queue()) {
+                    //                        try self.sharedContext.save()
 //                        }
 //                    } catch {
 //                        print("error in saving the Photo to core data")
 //                    }
-                    
-                    // Will this be handled by FetchedResultsController?
-//                    // update the cell later, on the main thread
-//                    
-                    //FlickrClient.sharedInstance.photoDownloadCounter -= 1
                     self.sendInfoToCollectionEditor()
                     
                     dispatch_async(dispatch_get_main_queue()) {
@@ -251,7 +234,9 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
                         // Make an array of NSIndexPaths with just the current cell's indexpath in it
                         let indexPaths: [NSIndexPath] = [indexPath]
                         //TODO: make sure we aren't calling reload too much (called in fetchController code as well)
-                        self.collectionView?.reloadItemsAtIndexPaths(indexPaths)
+                        if self.fetchedResultsController.fetchedObjects?.count > 0 { //safeguard against reloading an item that isn't there anymore
+                            self.collectionView?.reloadItemsAtIndexPaths(indexPaths)
+                        }
                     }
                 }
             }
@@ -313,6 +298,7 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
         }
     }
     
+    //TODO: Still allowing a doubling of the photos when button tapped twice quickly
     func enableNewCollectionButton () {
         if let parentVC = self.parentViewController as? CollectionEditor {
             if photoCounter! <= 0 || numPhotos == 0 {
@@ -324,6 +310,7 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
     }
     
     func disableInteraction () {
+        //TODO: don't disable scrolling
         collectionView?.userInteractionEnabled = false
         if let parentVC = self.parentViewController as? CollectionEditor {
             parentVC.bottomButton.enabled = false
@@ -403,8 +390,7 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
             insertedIndexPaths.append(newIndexPath!)
             break
         case .Delete:
-          //  if self.userAction == false { // If the user initiates deletion by tapping the button, we don't want the delegate to delete them again
-                print("Delete an item")
+
                 // Here we are noting that a Color instance has been deleted from Core Data. We keep remember its index path
                 // so that we can remove the corresponding cell in "controllerDidChangeContent". The "indexPath" parameter has
                 // value that we want in this case.
@@ -413,7 +399,7 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
             break
         case .Update:
             print("Update an item.")
-            // We don't expect Color instances to change after they are created. But Core Data would
+            //Core Data would
             // notify us of changes if any occured. This can be useful if you want to respond to changes
             // that come about after data is downloaded. For example, when an image is downloaded from
             // Flickr in the Virtual Tourist app
@@ -450,8 +436,10 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
                     self.collectionView!.deleteItemsAtIndexPaths([indexPath])
                 }
            // }
-            for indexPath in self.updatedIndexPaths {
-                self.collectionView!.reloadItemsAtIndexPaths([indexPath])
+            if self.buttonTapAllowed {
+                for indexPath in self.updatedIndexPaths {
+                    self.collectionView!.reloadItemsAtIndexPaths([indexPath])
+                }
             }
             
             }, completion: nil)
@@ -461,16 +449,22 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
         //TODO: called twice when deleting - first time is user driven, and 2nd time is by the delegate noticing the change
  
     func deleteAllPhotos(searchtext: String?) {
+        buttonTapAllowed = false
         //TODO: get rid of photosArray, should not be needed, get info directly from core data
         // TODO: Can crash when hitting New Collection butt over and over
         // therefore, disable the button first
         //TODO: but, don't want to disable scrolling in collection view, so disable per cell
         collectionView?.userInteractionEnabled = false
-        for photo in fetchedResultsController.fetchedObjects as! [Photo] {
-            if photo.managedObjectContext != nil {
-                sharedContext.deleteObject(photo)
+        if fetchedResultsController.fetchedObjects?.count > 0 { // attempt to avoid crash when rapidly tapping
+            dispatch_async(dispatch_get_main_queue()) {
+                for photo in self.fetchedResultsController.fetchedObjects as! [Photo] {
+                    if photo.managedObjectContext != nil {
+                        self.sharedContext.deleteObject(photo)
+                    }
+                    
+                }
+                self.saveContext()
             }
-            saveContext()
         }
         
         // Download a new collection of photos
@@ -494,8 +488,8 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
 //            }
         }
         flickr.getFlickrImagesForCoordinates(self.coordinates!, getTotal: false, searchtext: searchtext) { success, error in
-            print("STARTled")
             if success {
+                self.buttonTapAllowed = true
                 for url in self.model.photoArray! {
                     dispatch_async(dispatch_get_main_queue(), {
                         let entity = NSEntityDescription.entityForName("Photo", inManagedObjectContext: self.sharedContext)!
@@ -520,14 +514,11 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
             } else {
                 print("Error in getting Flickr Images: \(error)")
             }
-            //TODO: Make sure all Core Data is on same (in this case, main) thread
-            //CoreDataStackManager.sharedInstance().saveContext()
             self.saveContext()
         }
     }
 
     func deleteSelectedPhotos() {
-        userAction = true
         var photosToDelete = [Photo]()
         
         for indexPath in selectedIndexes {
