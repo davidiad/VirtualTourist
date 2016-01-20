@@ -72,9 +72,17 @@ class MapViewController: UIViewController, MKMapViewDelegate {
             currentPin?.didChangeValueForKey("coordinate")
         } else if gestureRecognizer.state == UIGestureRecognizerState.Ended {
             // fetch the photo url's for this Pin
+            // Run the fetch to get the total repeatedly, reducing accuracy each time, until at least 1 photo is found
             flickr.getFlickrImagesForCoordinates(newCoordinates, getTotal: true, searchtext: nil) { success, error in
-                //print("getTotal was true")
+                print("flickr.totalPhotos: \(self.flickr.totalPhotos)")
             }
+//            if (flickr.totalPhotos == nil || (flickr.totalPhotos == 0 && flickr.noPhotosCanBeFound == false)) {
+//                repeat {
+//                    flickr.getFlickrImagesForCoordinates(newCoordinates, getTotal: true, searchtext: nil) { success, error in
+//                        print("flickr.totalPhotos: \(self.flickr.totalPhotos)")
+//                    }
+//                } while (flickr.totalPhotos == nil || (flickr.totalPhotos == 0 && flickr.noPhotosCanBeFound == false))
+//            }
             flickr.getFlickrImagesForCoordinates(newCoordinates, getTotal:  false, searchtext: nil) { success, error in
                 if success {
                     for url in self.model.photoArray! {

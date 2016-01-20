@@ -469,23 +469,12 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
         
         // Download a new collection of photos
         flickr.getFlickrImagesForCoordinates(self.coordinates!, getTotal: true, searchtext: searchtext) { success, error in
-            print("START")
-//            if searchtext != nil && searchtext != "" {
-//                // Insert a new search object if there is an entry in the searchbox
-//                let entity = NSEntityDescription.entityForName("Search", inManagedObjectContext: self.sharedContext)!
-//                let search = Search(entity: entity, insertIntoManagedObjectContext: self.sharedContext)
-//                search.searchString = searchtext
-//                self.currentPin?.search = search
-//                search.pin = self.currentPin
-//                print("CP: \(self.currentPin)")
-//                do {
-//                    try self.sharedContext.save()
-//                } catch {
-//                    print("Could not save the search")
-//                }
-//            } else {
-//                print("NO SEARCHTEXT")
-//            }
+            //if success {
+                if self.flickr.totalPhotos == 0 {
+                    print("NO PHO")
+                }
+           // }
+
         }
         flickr.getFlickrImagesForCoordinates(self.coordinates!, getTotal: false, searchtext: searchtext) { success, error in
             if success {

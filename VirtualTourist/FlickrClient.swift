@@ -19,6 +19,7 @@ let CONTENT_TYPE = "1"
 let MEDIA = "photos"
 let DATA_FORMAT = "json"
 let NO_JSON_CALLBACK = "1"
+let ACCURACY_DEFAULT = 16
 let PER_PAGE_DEFAULT = 21
 
 class FlickrClient: NSObject {
@@ -29,6 +30,7 @@ class FlickrClient: NSObject {
         CoreDataStackManager.sharedInstance().managedObjectContext
     }()
     var totalPhotos: Int?
+    var noPhotosCanBeFound: Bool = false
     
     // A bit awkward to use getTotal to toggle whether to get the total # of photos, or to get a set of 21 photos. But avoids repeat of most of the code in this func. Is there a better way?
     // fist time calling this, accuracy is set to 16. If no photos returned, reduce accuracy by 1 and call again until at least 1 photo is returned
@@ -54,17 +56,29 @@ class FlickrClient: NSObject {
         
         //TODO: if no photos are found, reduce this accuracy number and try again
         var text: String = ""
-        var accuracy = "16"
+        var accuracy = String(ACCURACY_DEFAULT)
         var per_page = String(PER_PAGE_DEFAULT)
         var page = "1"
-       //guard let _ = searchtext else { text = "" }
         if searchtext != nil {
             text = "\(searchtext!)"
         }
+    
         print("*********totalPhotos******** \(totalPhotos)")
         // calculate which page to use
      
         if totalPhotos != nil {
+            // If no photos are found in the search, increase the search area
+            if totalPhotos == 0 {
+                let decrementedAccuracy = Int(accuracy)! - 1
+                if decrementedAccuracy > 2 { // limit the range to no more than the Country
+                    accuracy = String(decrementedAccuracy)
+                } else {
+                    noPhotosCanBeFound = true
+                }
+            }
+            if totalPhotos > 0 {
+                noPhotosCanBeFound = false
+            }
             if totalPhotos > PER_PAGE_DEFAULT {
                 // Even though the "total" may be over 4000, Flickr will only let you access the first 4000
                 // So, limit the total to 4000, otherwise they send you duplicate photos
@@ -156,22 +170,22 @@ class FlickrClient: NSObject {
                     return
                 }
                 self.totalPhotos = Int((photosDictionary["total"] as? String)!)
-                print("total: \(self.totalPhotos)")
                 if self.totalPhotos == nil {
                     print("Cannot find key 'total' in \(parsedResult)")
                     return
                 } else {
                     print("total: \(self.totalPhotos)")
+                    completion(success: true, error: nil)
                 }
                 
-                // calculate which page to use
-                if self.totalPhotos < 22 {
-                    page = "1"
-                } else {
-                    let pages = Int(self.totalPhotos! / 21)
-                    let randomPageIndex = Int(arc4random_uniform(UInt32(pages)))
-                    page = String(randomPageIndex)
-                }
+//                // calculate which page to use
+//                if self.totalPhotos <= PER_PAGE_DEFAULT {
+//                    page = "1"
+//                } else {
+//                    let pages = Int(self.totalPhotos! / PER_PAGE_DEFAULT)
+//                    let randomPageIndex = Int(arc4random_uniform(UInt32(pages)))
+//                    page = String(randomPageIndex)
+//                }
             } else { // We are getting the photos this time, not just the total # of photos
                 /* GUARD: Are the "photos" and "photo" keys in our result? */
                 guard let photosDictionary = parsedResult["photos"] as? NSDictionary,
