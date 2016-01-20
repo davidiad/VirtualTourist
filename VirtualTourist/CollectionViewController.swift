@@ -304,14 +304,14 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
             if photoCounter! <= 0 || numPhotos == 0 {
                 parentVC.bottomButton.enabled = true
                 // allow cells to be selected
-                collectionView?.userInteractionEnabled = true
+                //collectionView?.userInteractionEnabled = true
             }
         }
     }
     
     func disableInteraction () {
         //TODO: don't disable scrolling
-        collectionView?.userInteractionEnabled = false
+        //collectionView?.userInteractionEnabled = false
         if let parentVC = self.parentViewController as? CollectionEditor {
             parentVC.bottomButton.enabled = false
         }
@@ -454,7 +454,7 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
         // TODO: Can crash when hitting New Collection butt over and over
         // therefore, disable the button first
         //TODO: but, don't want to disable scrolling in collection view, so disable per cell
-        collectionView?.userInteractionEnabled = false
+        //collectionView?.userInteractionEnabled = false
         if fetchedResultsController.fetchedObjects?.count > 0 { // attempt to avoid crash when rapidly tapping
             dispatch_async(dispatch_get_main_queue()) {
                 for photo in self.fetchedResultsController.fetchedObjects as! [Photo] {

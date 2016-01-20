@@ -111,7 +111,7 @@
         <scene sceneID="leG-2n-PVJ">
             <objects>
                 <collectionViewController id="V89-CL-Ahw" customClass="CollectionViewController" customModule="VirtualTourist" customModuleProvider="target" sceneMemberID="viewController">
-                    <collectionView key="view" clipsSubviews="YES" multipleTouchEnabled="YES" userInteractionEnabled="NO" contentMode="scaleToFill" dataMode="prototypes" id="Dcc-vu-JNf">
+                    <collectionView key="view" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" showsHorizontalScrollIndicator="NO" dataMode="prototypes" id="Dcc-vu-JNf">
                         <rect key="frame" x="0.0" y="0.0" width="600" height="285"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <color key="backgroundColor" red="1" green="0.94907457750000002" blue="0.62519395369999997" alpha="1" colorSpace="calibratedRGB"/>
