@@ -68,14 +68,14 @@ class FlickrClient: NSObject {
      
         if totalPhotos != nil {
             // If no photos are found in the search, increase the search area
-            if totalPhotos == 0 {
-                let decrementedAccuracy = Int(accuracy)! - 1
-                if decrementedAccuracy > 2 { // limit the range to no more than the Country
-                    accuracy = String(decrementedAccuracy)
-                } else {
-                    noPhotosCanBeFound = true
-                }
-            }
+//            if totalPhotos == 0 {
+//                let decrementedAccuracy = Int(accuracy)! - 1
+//                if decrementedAccuracy > 2 { // limit the range to no more than the Country
+//                    accuracy = String(decrementedAccuracy)
+//                } else {
+//                    noPhotosCanBeFound = true
+//                }
+//            }
             if totalPhotos > 0 {
                 noPhotosCanBeFound = false
             }
