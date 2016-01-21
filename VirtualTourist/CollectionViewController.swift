@@ -390,7 +390,6 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
             }
             
                 for indexPath in self.deletedIndexPaths {
-                    print("DELETE in performBatchUpdate")
                     self.collectionView!.deleteItemsAtIndexPaths([indexPath])
                 }
             if self.buttonTapAllowed {
@@ -458,8 +457,8 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
                                 self.deleteAllPhotos(searchtext)
                             } else {
                                 self.updateNumPhotosLabel()
-                                print(self.flickr.currentAccuracy)
-                                print("NO PHOTOS CAN BE FOUND, TRY ANOTHER SEARCH")
+                                self.buttonTapAllowed = true
+                                self.flickr.currentAccuracy = 16 // reset the accuracy
                             }
                         }
                     }
@@ -488,20 +487,5 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
             _ = try? self.sharedContext.save()
         }
     }
-    
-    
-    /* from the docs
-Modifying the Fetch Request
-You cannot simply change the fetch request to modify the results. If you want to change the fetch request, you must:
-If you are using a cache, delete it (using deleteCacheWithName:).
-Typically you should not use a cache if you are changing the fetch request.
-Change the fetch request.
-Invoke performFetch:.
-Handling Object Invalidation
-When a managed object context notifies the fetched results controller that individual objects are invalidated, the controller treats these as deleted objects and sends the proper delegate calls.
-It’s possible for all the objects in a managed object context to be invalidated simultaneously. (For example, as a result of calling reset, or if a store is removed from the the persistent store coordinator.) When this happens, NSFetchedResultsController does not invalidate all objects, nor does it send individual notifications for object deletions. Instead, you must call performFetch: to reset the state of the controller then reload the data in the table view (reloadData).
-iOS Version Issues
-There are several known issues and behavior changes with NSFetchedResultsController on various releases of iOS.
-*/
 }
 

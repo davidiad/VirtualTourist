@@ -72,7 +72,7 @@ class MapViewController: UIViewController, MKMapViewDelegate {
         } else if gestureRecognizer.state == UIGestureRecognizerState.Ended {
             // fetch the photo url's for this Pin
             // Run the fetch to get the total repeatedly, reducing accuracy each time, until at least 1 photo is found
-            flickr.currentAccuracy = 16 // reset accuracy to the default
+            flickr.currentAccuracy = 16 // resets accuracy to the default
             flickr.getFlickrImagesForCoordinates(newCoordinates, getTotal: true, accuracyInt: nil, searchtext: nil) { success, error in
                 print("flickr.totalPhotos: \(self.flickr.totalPhotos)")
                 self.flickr.getFlickrImagesForCoordinates(newCoordinates, getTotal:  false, accuracyInt: nil, searchtext: nil) { success, error in
@@ -107,45 +107,6 @@ class MapViewController: UIViewController, MKMapViewDelegate {
                 }
 
             }
-//            if (flickr.totalPhotos == nil || (flickr.totalPhotos == 0 && flickr.noPhotosCanBeFound == false)) {
-//                repeat {
-//                    flickr.getFlickrImagesForCoordinates(newCoordinates, getTotal: true, searchtext: nil) { success, error in
-//                        print("flickr.totalPhotos: \(self.flickr.totalPhotos)")
-//                    }
-//                } while (flickr.totalPhotos == nil || (flickr.totalPhotos == 0 && flickr.noPhotosCanBeFound == false))
-//            }
-            /*
-            flickr.getFlickrImagesForCoordinates(newCoordinates, getTotal:  false, searchtext: nil) { success, error in
-                if success {
-                    for url in self.model.photoArray! {
-                        dispatch_async(dispatch_get_main_queue(), {
-                            let entity = NSEntityDescription.entityForName("Photo", inManagedObjectContext: self.sharedContext)!
-                            let photo = Photo(entity: entity, insertIntoManagedObjectContext: self.sharedContext)
-                            photo.pin = self.currentPin
-                            photo.url = url
-                            
-                            _ = FlickrClient.sharedInstance.taskForImage(photo.url!) { data, error in
-                                
-                                if let error = error {
-                                    print("Photo download error: \(error.localizedDescription)")
-                                }
-                                
-                                if let data = data {
-                                    // Create the image
-                                    let image = UIImage(data: data)
-                                    
-                                    // update the model, so that the information gets cached
-                                    photo.photoImage = image
-                                }
-                            }
-                            
-                        } )
-                    }
-                } else {
-                    print("Error in getting Flickr Images: \(error)")
-                }
-            }
-            */
             
             CoreDataStackManager.sharedInstance().saveContext()
         }
@@ -267,7 +228,7 @@ class MapViewController: UIViewController, MKMapViewDelegate {
     }
     
     func saveMapInfo() {
-        let info = makeMapDictionary()
+        _ = makeMapDictionary()
         deleteMapInfo()
         _ = NSFetchRequest(entityName: "MapViewInfo")
         

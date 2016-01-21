@@ -56,7 +56,6 @@ class FlickrClient: NSObject {
         let lat = String(coordinates.latitude)
         let lon = String(coordinates.longitude)
         
-        //TODO: if no photos are found, reduce this accuracy number and try again
         var text: String = ""
         var accuracy = {
             String(accuracyInt ?? ACCURACY_DEFAULT)
@@ -311,6 +310,7 @@ class FlickrClient: NSObject {
         let epochTimestamp = String(tenDaysBeforeNow.timeIntervalSince1970)
         print("a date: \(tenDaysBeforeNow)")
         print(epochTimestamp)
+        print(days)
         print("make a date")
         return epochTimestamp
     }

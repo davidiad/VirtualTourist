@@ -115,7 +115,6 @@ class CollectionEditor: UIViewController, MKMapViewDelegate, UICollectionViewDel
         if embeddedCollectionView?.selectedIndexes.count <= 0 {
             
             bottomButton.enabled = false
-            print("BB TAPPED")
             if embeddedCollectionView?.buttonTapAllowed == true { //Check to make sure we're not in the middle of deleting old photos and fetching new ones
                 if searchbox.text != nil && searchbox.text != "" {
                     dispatch_async(dispatch_get_main_queue()) {
@@ -135,7 +134,6 @@ class CollectionEditor: UIViewController, MKMapViewDelegate, UICollectionViewDel
                 embeddedCollectionView?.deleteAllPhotos(self.searchbox.text!)
             }
         } else {
-            print("BB remove TAPPED")
             embeddedCollectionView?.deleteSelectedPhotos()
             updateBottomButton()
         }
