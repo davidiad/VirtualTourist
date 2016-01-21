@@ -11,20 +11,9 @@ import UIKit
 import MapKit
 
 let reuseIdentifier = "Cell"
-//let sectionInsets = UIEdgeInsets(top: 1.0, left: 1.0, bottom: 1.0, right: 1.0)
 var csize: CGSize = CGSizeMake(100, 100)
 
-//TODO: Collection view interaction scrolling disabled while New Collection is loading -- should b enabled
-//TODO: clicking twice quickly allows double the #
-//TODO: when a search term is entered, first tap finds 0 photos
-
 class CollectionViewController: UICollectionViewController, NSFetchedResultsControllerDelegate {
-    //TODO: Search object does not seem be being saved
-    
-    // Question: Before enabling the bottom button, so we need to check that all cells have downloaded? Or just the visible ones? Or just that the url's have been fetched? Can I check to see if the cell's photoImage property is not nil? Or might those be deleted from the cache by the system, so unreliable?
-    /*
-    "If you wish to hold state for an entry in your collection, you'll have to store it separately from the cell itself. For example, an NSArray of structs (or custom NSObjects) that map to the indexPath.row value."
-    */
     
     
     let model = VirtualTouristModel.sharedInstance
@@ -36,10 +25,8 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
     private let barSize : CGFloat = 0.0
     
     // The selected indexes array keeps all of the indexPaths for cells that are "selected". The array is
-    // used inside cellForItemAtIndexPath to lower the alpha of selected cells.  You can see how the array
-    // works by searchign through the code for 'selectedIndexes'
+    // used inside cellForItemAtIndexPath to lower the alpha of selected cells.
     var selectedIndexes = [NSIndexPath]()
-    
     // Keep the changes. We will keep track of insertions, deletions, and updates.
     var insertedIndexPaths: [NSIndexPath]!
     var deletedIndexPaths: [NSIndexPath]!
@@ -52,25 +39,14 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        //print(currentPin)
-        // Uncomment the following line to preserve selection between presentations
-        // self.clearsSelectionOnViewWillAppear = false
-
-        // Register cell classes
-        
-        //self.collectionView!.registerClass(CollectionViewCell.self, forCellWithReuseIdentifier: reuseIdentifier)
         
         // Start the fetched results controller
-        var error: NSError?
+        
         do {
             try fetchedResultsController.performFetch()
-            print("fetch try")
         } catch {
-            print("Error performing initial fetch: \(error)")        }
-        
-//        if let error = error {
-//            print("Error performing initial fetch: \(error)")
-//        }
+            print("Error performing initial fetch")
+        }
     }
     
     override func viewDidAppear(animated: Bool) {
@@ -95,8 +71,7 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
     }
     
     func collectionView(collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, insetForSectionAtIndex section: Int) -> UIEdgeInsets {
-        //let frame : CGRect = self.view.frame
-        let margin  = CGFloat(5)//(frame.width - 90 * 3) / 6.0
+        let margin  = CGFloat(5)
         return UIEdgeInsetsMake(2, margin, 2, margin) // margin between cells
     }
 
@@ -117,19 +92,7 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
 
     override func collectionView(collectionView: UICollectionView, cellForItemAtIndexPath indexPath: NSIndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCellWithReuseIdentifier(reuseIdentifier, forIndexPath: indexPath) as! CollectionViewCell
-        //cell.image = nil // reset the image to nil when cell is reused. In the cell class, we use didSet to check whether the image is not nil, and therefore we have a 'new' (if recycled) cell.
         configureCell(cell, indexPath: indexPath)
-    
-//        // Configure the cell
-//        let imageView = UIImageView()
-//        imageView.contentMode = UIViewContentMode.ScaleToFill
-//        let photo = self.fetchedResultsController.objectAtIndexPath(indexPath) as! Photo
-//        let url = photo.url
-//        imageView.imageFromUrl(url!)
-//        imageView.frame = CGRect(x: 2, y: 2, width: csize.width - 4, height: csize.height - 4)
-//        imageView.image = cell.image
-//        cell.addSubview(imageView)
-//        cell.backgroundColor = UIColor.redColor()
         return cell
     }
     
@@ -145,7 +108,7 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
         }
     }
     
-    //TODO: is this func duplicating countDownloaded? No. This func is to update the count for an individual Photo when it has finished downloading.
+    // Is this func duplicating countDownloaded? No. This func is to update the count for an individual Photo when it has finished downloading.
     func checkPhotoCount(photo: Photo) {
         // Why false? To make sure we don't count the photo as downloaded twice. Because photo.downloaded is about to be set to true
         dispatch_async(dispatch_get_main_queue()) {
@@ -198,29 +161,20 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
                         // shorter syntax for saving core data
                         _ = try? self.sharedContext.save()
                     }
-                    
-                    //                    do {
-                    //                         dispatch_async(dispatch_get_main_queue()) {
-                    //                        try self.sharedContext.save()
-//                        }
-//                    } catch {
-//                        print("error in saving the Photo to core data")
-//                    }
+
                     self.sendInfoToCollectionEditor()
                     
                     dispatch_async(dispatch_get_main_queue()) {
                         cell.cellView.image = image
-                        cell.image = image // TODO: not sure if this line, or variable, is needed, but for now, it is what triggers didSet for image, stopping activity indicator and allow enableUserInteraction for the cell
+                        cell.image = image // triggers didSet for image, stopping activity indicator and allowing enableUserInteraction for the cell
                         // Make an array of NSIndexPaths with just the current cell's indexpath in it
                         let indexPaths: [NSIndexPath] = [indexPath]
-                        //TODO: make sure we aren't calling reload too much (called in fetchController code as well)
                         if self.fetchedResultsController.fetchedObjects?.count > 0 { //safeguard against reloading an item that isn't there anymore
                             self.collectionView?.reloadItemsAtIndexPaths(indexPaths)
                         }
                     }
                 }
             }
-            //TODO: New Collection button is grayed out until fetch is complete (or download is complete? check specs)
 
             // This is the custom property on this cell. See CollectionViewCell.swift for details.
             cell.taskToCancelifCellIsReused = task
@@ -241,7 +195,6 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
         let cell = collectionView.cellForItemAtIndexPath(indexPath) as! CollectionViewCell
         
         // Whenever a cell is tapped, toggle its presence in the selectedIndexes array
-        //if let index = find(selectedIndexes, indexPath) {
         if let index = selectedIndexes.indexOf(indexPath) {
             selectedIndexes.removeAtIndex(index)
         } else {
@@ -295,15 +248,11 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
         if let parentVC = self.parentViewController as? CollectionEditor {
             if photoCounter! <= 0 || numPhotos == 0 {
                 parentVC.bottomButton.enabled = true
-                // allow cells to be selected
-                //collectionView?.userInteractionEnabled = true
             }
         }
     }
     
     func disableInteraction () {
-        //TODO: don't disable scrolling
-        //collectionView?.userInteractionEnabled = false
         if let parentVC = self.parentViewController as? CollectionEditor {
             parentVC.bottomButton.enabled = false
         }
@@ -351,37 +300,21 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
             break
         case .Delete:
 
-                // Here we are noting that a Photo instance has been deleted from Core Data. We keep remember its index path
-                // so that we can remove the corresponding cell in "controllerDidChangeContent". The "indexPath" parameter has
-                // value that we want in this case.
+                /* Here we are noting that a Photo instance has been deleted from Core Data. We keep remember its index path so that we can remove the corresponding cell in "controllerDidChangeContent". The "indexPath" parameter has values that we want in this case. */
                 deletedIndexPaths.append(indexPath!)
           //  }
             break
         case .Update:
-            //Core Data would
-            // notify us of changes if any occured. This can be useful if you want to respond to changes
-            // that come about after data is downloaded. For example, when an image is downloaded from
-            // Flickr in the Virtual Tourist app
+            /* Core Data would notify us of changes if any occured. This can be useful if you want to respond to changes that come about after data is downloaded. For example, when an image is downloaded from Flickr in the Virtual Tourist app */
             updatedIndexPaths.append(indexPath!)
             break
-//        case .Move:
-//            print("Move an item. We don't expect to see this in this app.")
-//            break
         default:
             break
         }
     }
     
-    // This method is invoked after all of the changed in the current batch have been collected
-    // into the three index path arrays (insert, delete, and upate). We now need to loop through the
-    // arrays and perform the changes.
-    //
-    // The most interesting thing about the method is the collection view's "performBatchUpdates" method.
-    // Notice that all of the changes are performed inside a closure that is handed to the collection view.
+    /* This method is invoked after all of the changed in the current batch have been collected into the three index path arrays (insert, delete, and upate). We now need to loop through the arrays and perform the changes. */
     func controllerDidChangeContent(controller: NSFetchedResultsController) {
-        
-        //print("in controllerDidChangeContent. changes.count: \(insertedIndexPaths.count + deletedIndexPaths.count)")
-        //print("updated count: \(updatedIndexPaths.count)")
         
         collectionView!.performBatchUpdates({() -> Void in
             

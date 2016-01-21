@@ -10,7 +10,6 @@ import UIKit
 import MapKit
 import CoreData
 
-/* 1 - Define constants */
 let BASE_URL = "https://api.flickr.com/services/rest/"
 let METHOD_NAME = "flickr.photos.search"
 let API_KEY = "461697eded75e4c63f0a952aa1761c43"
@@ -21,10 +20,11 @@ let DATA_FORMAT = "json"
 let NO_JSON_CALLBACK = "1"
 let ACCURACY_DEFAULT = 16
 let PER_PAGE_DEFAULT = 21
-let RADIUS_DEFAULT = "32" // max allowed, in km
+let RADIUS_DEFAULT = "32" // 32 is max allowed, in km
 
 class FlickrClient: NSObject {
-    //TODO: reduce accuracy if 0 photos are found, until either at least 1 is found, or "No Photos found" is displayed
+
+    //MARK:- Vars
     static let sharedInstance = FlickrClient() // makes this class a singleton
     let model = VirtualTouristModel.sharedInstance
     lazy var sharedContext = {
@@ -34,24 +34,9 @@ class FlickrClient: NSObject {
     var currentAccuracy: Int = ACCURACY_DEFAULT
     var noPhotosCanBeFound: Bool = false
     
-    // A bit awkward to use getTotal to toggle whether to get the total # of photos, or to get a set of 21 photos. But avoids repeat of most of the code in this func. Is there a better way?
-    // fist time calling this, accuracy is set to 16. If no photos returned, reduce accuracy by 1 and call again until at least 1 photo is returned
-    /* Flickr.api accuracy reference. Probably go no lower than about 5 (what's the point of searching the entire World from 1 coordinate?)
-    World level is 1
-    Country is ~3
-    Region is ~6
-    City is ~11
-    Street is ~16
-    */
-    
-    // TODO: Wrap 2 calls to getFlickrImagesForCoordinates, 1st with getTotal == true, to fetch total # of images
-//    func getFlickerImages (coordinates: CLLocationCoordinate2D, searchtext: String?) {
-//        totalPhotos = nil // reset totalPhotos (TODO: is this where the bug lies?)
-//        getFlickrImagesForCoordinates(coordinates: coordinates, getTotal: true, searchtext: searchtext { success, error in
-//            
-//        }
-//    }
-    
+    //MARK:- Flickr image fetch functions
+    // When getTotal is true, only fetching the total # of photos
+    // When getTotal is false, actually fetching the photos
     func getFlickrImagesForCoordinates(coordinates: CLLocationCoordinate2D, getTotal: Bool, accuracyInt: Int?, searchtext: String?,completion: (success: Bool, error: NSError?) -> Void) {
         let lat = String(coordinates.latitude)
         let lon = String(coordinates.longitude)
@@ -66,22 +51,16 @@ class FlickrClient: NSObject {
             text = "\(searchtext!)"
         }
         let min_date_upload = {
+            // As accuracy is decreased, makeDate() increases the date range as well
             makeDate()
         }()
-    
-        print("*********totalPhotos******** \(totalPhotos)")
+        let radius = {
+            calculateRadius()
+        }()
+
         // calculate which page to use
-     
         if totalPhotos != nil {
-//            // If no photos are found in the search, increase the search area
-//            if totalPhotos == 0 {
-//                let decrementedAccuracy = Int(accuracy)! - 1
-//                if decrementedAccuracy > 2 { // limit the range to no more than the Country
-//                    accuracy = String(decrementedAccuracy)
-//                } else {
-//                    noPhotosCanBeFound = true
-//                }
-//            }
+
             if totalPhotos > 0 {
                 noPhotosCanBeFound = false
             }
@@ -107,7 +86,6 @@ class FlickrClient: NSObject {
                         let decrementedAccuracy = Int(accuracy)! - 1
                         if decrementedAccuracy > 0 { // limit the range to no more than the Country
                             accuracy = String(decrementedAccuracy)
-                            print("accuracy: \(accuracy)")
                             currentAccuracy = decrementedAccuracy
                         } else {
                             noPhotosCanBeFound = true
@@ -117,13 +95,13 @@ class FlickrClient: NSObject {
             }
         }
         
-        /* 2 - API method arguments */
+        //  API method arguments
         let methodArguments = [
             "method": METHOD_NAME,
             "api_key": API_KEY,
             "text": text,
             "accuracy": accuracy,
-            "radius" : RADIUS_DEFAULT,
+            "radius" : radius,
             "content_type": CONTENT_TYPE,
             "media": MEDIA,
             "lat": lat,
@@ -136,23 +114,23 @@ class FlickrClient: NSObject {
             "min_date_upload": min_date_upload
         ]
         
-        /* 3 - Initialize session and url */
+        // Initialize session and url
         let session = NSURLSession.sharedSession()
         let urlString = BASE_URL + escapedParameters(methodArguments)
         let url = NSURL(string: urlString)!
         let request = NSURLRequest(URL: url)
         
-        /* 4 - Initialize task for getting data */
+        // Initialize task for getting data
         let task = session.dataTaskWithRequest(request) { (data, response, error) in
             
-            /* 5 - Check for a successful response */
-            /* GUARD: Was there an error? */
+            // Check for a successful response
+            // GUARD: Was there an error?
             guard (error == nil) else {
                 print("There was an error with your request: \(error)")
                 return
             }
             
-            /* GUARD: Did we get a successful 2XX response? */
+            // GUARD: Did we get a successful 2XX response?
             guard let statusCode = (response as? NSHTTPURLResponse)?.statusCode where statusCode >= 200 && statusCode <= 299 else {
                 if let response = response as? NSHTTPURLResponse {
                     print("Your request returned an invalid response! Status code: \(response.statusCode)!")
@@ -164,13 +142,13 @@ class FlickrClient: NSObject {
                 return
             }
             
-            /* GUARD: Was there any data returned? */
+            // GUARD: Was there any data returned?
             guard let data = data else {
                 print("No data was returned by the request!")
                 return
             }
             
-            /* 6 - Parse the data (i.e. convert the data to JSON and look for values!) */
+            // - Parse the data
             let parsedResult: AnyObject!
             do {
                 parsedResult = try NSJSONSerialization.JSONObjectWithData(data, options: .AllowFragments)
@@ -180,7 +158,7 @@ class FlickrClient: NSObject {
                 return
             }
             
-            /* GUARD: Did Flickr return an error (stat != ok)? */
+            // GUARD: Did Flickr return an error (stat != ok)?
             guard let stat = parsedResult["stat"] as? String where stat == "ok" else {
                 print("Flickr API returned an error. See error code and message in \(parsedResult)")
                 return
@@ -197,31 +175,18 @@ class FlickrClient: NSObject {
                     print("Cannot find key 'total' in \(parsedResult)")
                     return
                 } else {
-                    print("total: \(self.totalPhotos)")
                     completion(success: true, error: nil)
                 }
                 
-//                // calculate which page to use
-//                if self.totalPhotos <= PER_PAGE_DEFAULT {
-//                    page = "1"
-//                } else {
-//                    let pages = Int(self.totalPhotos! / PER_PAGE_DEFAULT)
-//                    let randomPageIndex = Int(arc4random_uniform(UInt32(pages)))
-//                    page = String(randomPageIndex)
-//                }
             } else { // We are getting the photos this time, not just the total # of photos
-                /* GUARD: Are the "photos" and "photo" keys in our result? */
+                // GUARD: Are the "photos" and "photo" keys in our result?
                 guard let photosDictionary = parsedResult["photos"] as? NSDictionary,
                     photoArray = photosDictionary["photo"] as? [[String: AnyObject]] else {
-                        dispatch_async(dispatch_get_main_queue(), {
-                            //self.setUIEnabled(enabled: true)
-                        })
                         print("Cannot find keys 'photos' and 'photo' in \(parsedResult)")
                         return
                 }
                 
-                // Put all of the url strings into an array, and pass that into the data model to store
-                //TODO: get rid of photoArray, instead use core data directly
+                // Put all of the url strings into an array, and pass that into the data model (not core data) to store
                 self.model.photoArray?.removeAll()
                 for photo in photoArray {
                     guard let imageUrlString = photo["url_m"] as? String else {
@@ -235,12 +200,11 @@ class FlickrClient: NSObject {
             }
         }
         
-        /* 9 - Resume (execute) the task */
+        // Resume (execute) the task
         task.resume()
     }
     
-    // MARK: - All purpose task method for images
-    
+    // Task method for downloading individual images
     func taskForImage(filePath: String, completionHandler: (imageData: NSData?, error: NSError?) ->  Void) -> NSURLSessionTask {
         let url = NSURL(string: filePath)!
         let request = NSURLRequest(URL: url)
@@ -260,7 +224,9 @@ class FlickrClient: NSObject {
     }
     
     
-    /* Helper function: Given a dictionary of parameters, convert to a string for a url */
+    //MARK: Helper functions
+    
+    // Given a dictionary of parameters, convert to a string for a url */
     func escapedParameters(parameters: [String : AnyObject]) -> String {
         
         var urlVars = [String]()
@@ -281,38 +247,28 @@ class FlickrClient: NSObject {
         return (!urlVars.isEmpty ? "?" : "") + urlVars.joinWithSeparator("&")
     }
     
-    // MARK:- Date helper
+    // Convert date into unix timestamp format used by Flickr API
     func makeDate() -> String {
-        // In order to increase the chance of finding photos if expanding the search due to no photos being found in the first run, extend the date more with each reduction in accuracy
-        // Default accuracy (16) -> default date (12 hours) (or 1 day)
-        // Accuracy 15 -> date 10 days previous
-        
-        // Accuracy 1 -> date 12 years previous, or about 4,000 days
-        // 16 - currentAccuracy -> number from 0 to 15
-        // multiply by 300
-        // add 1
-        let days = (-300 * (16 - currentAccuracy)) + 1
+        // In order to increase the chance of finding photos if expanding the search due to no photos being found in the first run, extend the date further back with each reduction in accuracy
+        let numDaysBeforeNow = (-300 * (16 - currentAccuracy)) + 1
         let userCalendar = NSCalendar.currentCalendar()
-        // get the current time/date ( gotten from NSDate() )
-        // subtract some time from it (a day? a week? month?)
-        // return the time in a format that the flickr api can use
         
-        let tenDaysBeforeNow = userCalendar.dateByAddingUnit(
+        let aTimeBeforeNow = userCalendar.dateByAddingUnit(
             [.Day],
-            value: days,
+            value: numDaysBeforeNow,
             toDate: NSDate(),
             options: [])!
         
-        // ref code
-        //NSTimeInterval epochTimestamp = [yourDate timeIntervalSince1970];
-        //NSString *epochTimestampString = [@(epochTimestamp) stringValue];
-        
-        let epochTimestamp = String(tenDaysBeforeNow.timeIntervalSince1970)
-        print("a date: \(tenDaysBeforeNow)")
-        print(epochTimestamp)
-        print(days)
-        print("make a date")
+        let epochTimestamp = String(aTimeBeforeNow.timeIntervalSince1970)
         return epochTimestamp
     }
+    
+    // Increase the search radius as accuracy is reduced
+    func calculateRadius() -> String {
+        if currentAccuracy < 10 {
+            return RADIUS_DEFAULT
+        } else {
+            return String( (5 * (16 - currentAccuracy)) + 2 )
+        }
+    }
 }
-
