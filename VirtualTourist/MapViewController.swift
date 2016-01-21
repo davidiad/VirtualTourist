@@ -24,6 +24,7 @@ class MapViewController: UIViewController, MKMapViewDelegate {
     @IBOutlet weak var map: MKMapView!
     
     override func viewDidLoad() {
+        flickr.makeDate()
         map.delegate = self
         let longpress = UILongPressGestureRecognizer(target: self, action: "addAnnotation:")
         longpress.minimumPressDuration = 0.7
@@ -71,9 +72,10 @@ class MapViewController: UIViewController, MKMapViewDelegate {
         } else if gestureRecognizer.state == UIGestureRecognizerState.Ended {
             // fetch the photo url's for this Pin
             // Run the fetch to get the total repeatedly, reducing accuracy each time, until at least 1 photo is found
-            flickr.getFlickrImagesForCoordinates(newCoordinates, getTotal: true, searchtext: nil) { success, error in
+            flickr.currentAccuracy = 16 // reset accuracy to the default
+            flickr.getFlickrImagesForCoordinates(newCoordinates, getTotal: true, accuracyInt: nil, searchtext: nil) { success, error in
                 print("flickr.totalPhotos: \(self.flickr.totalPhotos)")
-                self.flickr.getFlickrImagesForCoordinates(newCoordinates, getTotal:  false, searchtext: nil) { success, error in
+                self.flickr.getFlickrImagesForCoordinates(newCoordinates, getTotal:  false, accuracyInt: nil, searchtext: nil) { success, error in
                     if success {
                         for url in self.model.photoArray! {
                             dispatch_async(dispatch_get_main_queue(), {

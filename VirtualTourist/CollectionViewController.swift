@@ -66,17 +66,19 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
             try fetchedResultsController.performFetch()
             print("fetch try")
         } catch {
-            print("fetch catch")
-        }
+            print("Error performing initial fetch: \(error)")        }
         
-        if let error = error {
-            print("Error performing initial fetch: \(error)")
-        }
+//        if let error = error {
+//            print("Error performing initial fetch: \(error)")
+//        }
     }
     
-//    override func viewDidAppear(animated: Bool) {
-//        countDownloaded()
-//    }
+    override func viewDidAppear(animated: Bool) {
+        if  fetchedResultsController.fetchedObjects?.count == 0 {
+            // automatically try to fetch photos with looser parameters if there are none from the initial fetch
+            deleteAllPhotos(nil)
+        }
+    }
     
     override func viewWillLayoutSubviews() {
         let frame = self.view.frame
@@ -84,8 +86,6 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
     }
     
     // MARK: UICollectionViewDelegateFlowLayout
-    
-    
     
     func collectionView(collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAtIndexPath indexPath: NSIndexPath) -> CGSize {
         let w = self.collectionView!.frame.size.width
@@ -107,27 +107,11 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
     }
 
     override func collectionView(collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-       // let sectionInfo = self.fetchedResultsController.sections![section]
-        
-        //print("number Of Cells in Section: \(sectionInfo.numberOfObjects)")
-        //TODO: currently getting the no of Pins, not of Photos for that Pin
-        //print("currentPin pinID: \(currentPin?.pinID)")
-//        let fetchRequest = NSFetchRequest(entityName: "Photo")
-//        fetchRequest.predicate = NSPredicate(format: "pin == %@", currentPin!)
-        
-        //return sectionInfo.numberOfObjects
-//        if model.photoArray?.count > 0 {
-//            return (model.photoArray?.count)!
-//        } else {
-//            print("no photos here yet")
-//            return 21 // if there are no photos ready, still, display the collection view with 21 empty cells
-//        }
         numPhotos = currentPin?.photos.count
         photoCounter = numPhotos
         countDownloaded()
         sendInfoToCollectionEditor()
         enableNewCollectionButton()
-        //return (currentPin?.photos.count)!
         return numPhotos!
     }
 
@@ -156,7 +140,6 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
             if photo.downloaded == true {
                 if photoCounter != nil {
                     photoCounter! -= 1
-                    //print(photoCounter!)
                 }
             }
         }
@@ -168,14 +151,11 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
         dispatch_async(dispatch_get_main_queue()) {
             if photo.downloaded == false {
                 self.photoCounter! -= 1
-                //print("photoCount: \(photoCounter)")
             }
             
             photo.downloaded = true
         }
         if photoCounter <= 0 {
-            // enable the New Collection button
-            //sendInfoToCollectionEditor()
             enableNewCollectionButton()
         }
     }
@@ -316,35 +296,6 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
             parentVC.bottomButton.enabled = false
         }
     }
-    
-    //TODO: Need this func?
-    // Uncomment this method to specify if the specified item should be highlighted during tracking
-//    override func collectionView(collectionView: UICollectionView, shouldHighlightItemAtIndexPath indexPath: NSIndexPath) -> Bool {
-//        return true
-//    }
-
-
-    /*
-    // Uncomment this method to specify if the specified item should be selected
-    override func collectionView(collectionView: UICollectionView, shouldSelectItemAtIndexPath indexPath: NSIndexPath) -> Bool {
-        return true
-    }
-    */
-
-    /*
-    // Uncomment these methods to specify if an action menu should be displayed for the specified item, and react to actions performed on the item
-    override func collectionView(collectionView: UICollectionView, shouldShowMenuForItemAtIndexPath indexPath: NSIndexPath) -> Bool {
-        return false
-    }
-
-    override func collectionView(collectionView: UICollectionView, canPerformAction action: Selector, forItemAtIndexPath indexPath: NSIndexPath, withSender sender: AnyObject?) -> Bool {
-        return false
-    }
-
-    override func collectionView(collectionView: UICollectionView, performAction action: Selector, forItemAtIndexPath indexPath: NSIndexPath, withSender sender: AnyObject?) {
-    
-    }
-    */
 
     // MARK: - NSFetchedResultsController
     
@@ -383,31 +334,29 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
         switch type {
             
         case .Insert:
-            print("Insert an item")
-            // Here we are noting that a new Color instance has been added to Core Data. We remember its index path
+            // Here we are noting that a new Photo instance has been added to Core Data. We remember its index path
             // so that we can add a cell in "controllerDidChangeContent". Note that the "newIndexPath" parameter has
             // the index path that we want in this case
             insertedIndexPaths.append(newIndexPath!)
             break
         case .Delete:
 
-                // Here we are noting that a Color instance has been deleted from Core Data. We keep remember its index path
+                // Here we are noting that a Photo instance has been deleted from Core Data. We keep remember its index path
                 // so that we can remove the corresponding cell in "controllerDidChangeContent". The "indexPath" parameter has
                 // value that we want in this case.
                 deletedIndexPaths.append(indexPath!)
           //  }
             break
         case .Update:
-            print("Update an item.")
             //Core Data would
             // notify us of changes if any occured. This can be useful if you want to respond to changes
             // that come about after data is downloaded. For example, when an image is downloaded from
             // Flickr in the Virtual Tourist app
             updatedIndexPaths.append(indexPath!)
             break
-        case .Move:
-            print("Move an item. We don't expect to see this in this app.")
-            break
+//        case .Move:
+//            print("Move an item. We don't expect to see this in this app.")
+//            break
         default:
             break
         }
@@ -430,12 +379,10 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
                 self.collectionView!.insertItemsAtIndexPaths([indexPath])
             }
             
-            //if self.userAction == false { // If the user initiates deletion by tapping the button, we don't want the delegate to delete them again
                 for indexPath in self.deletedIndexPaths {
                     print("DELETE in performBatchUpdate")
                     self.collectionView!.deleteItemsAtIndexPaths([indexPath])
                 }
-           // }
             if self.buttonTapAllowed {
                 for indexPath in self.updatedIndexPaths {
                     self.collectionView!.reloadItemsAtIndexPaths([indexPath])
@@ -443,67 +390,70 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
             }
             
             }, completion: nil)
-        //userAction = true // reset the flag for userAction
     }
     
-        //TODO: called twice when deleting - first time is user driven, and 2nd time is by the delegate noticing the change
- 
     func deleteAllPhotos(searchtext: String?) {
         buttonTapAllowed = false
-        //TODO: get rid of photosArray, should not be needed, get info directly from core data
-        // TODO: Can crash when hitting New Collection butt over and over
-        // therefore, disable the button first
-        //TODO: but, don't want to disable scrolling in collection view, so disable per cell
-        //collectionView?.userInteractionEnabled = false
         if fetchedResultsController.fetchedObjects?.count > 0 { // attempt to avoid crash when rapidly tapping
             dispatch_async(dispatch_get_main_queue()) {
                 for photo in self.fetchedResultsController.fetchedObjects as! [Photo] {
                     if photo.managedObjectContext != nil {
                         self.sharedContext.deleteObject(photo)
                     }
-                    
                 }
                 self.saveContext()
             }
         }
         
         // Download a new collection of photos
-        flickr.getFlickrImagesForCoordinates(self.coordinates!, getTotal: true, searchtext: searchtext) { success, error in
-            //if success {
-                if self.flickr.totalPhotos == 0 {
-                    print("NO PHO")
-                }
-           // }
-
-        }
-        flickr.getFlickrImagesForCoordinates(self.coordinates!, getTotal: false, searchtext: searchtext) { success, error in
+        flickr.getFlickrImagesForCoordinates(self.coordinates!, getTotal: true, accuracyInt: flickr.currentAccuracy, searchtext: searchtext) { success, error in
             if success {
-                self.buttonTapAllowed = true
-                for url in self.model.photoArray! {
-                    dispatch_async(dispatch_get_main_queue(), {
-                        let entity = NSEntityDescription.entityForName("Photo", inManagedObjectContext: self.sharedContext)!
-                        let photo = Photo(entity: entity, insertIntoManagedObjectContext: self.sharedContext)
-                        photo.pin = self.currentPin
-                        photo.url = url
-                        
-                        _ = self.flickr.taskForImage(photo.url!) { data, error in
-                            if let error = error {
-                                print("Photo download error: \(error.localizedDescription)")
+                if self.flickr.totalPhotos > 0 {
+                    self.flickr.getFlickrImagesForCoordinates(self.coordinates!, getTotal: false, accuracyInt: self.flickr.currentAccuracy, searchtext: searchtext) { success, error in
+                        if success {
+                            self.buttonTapAllowed = true
+                            for url in self.model.photoArray! {
+                                dispatch_async(dispatch_get_main_queue(), {
+                                    let entity = NSEntityDescription.entityForName("Photo", inManagedObjectContext: self.sharedContext)!
+                                    let photo = Photo(entity: entity, insertIntoManagedObjectContext: self.sharedContext)
+                                    photo.pin = self.currentPin
+                                    photo.url = url
+                                    
+                                    _ = self.flickr.taskForImage(photo.url!) { data, error in
+                                        if let error = error {
+                                            print("Photo download error: \(error.localizedDescription)")
+                                        }
+                                        if let data = data {
+                                            // Create the image
+                                            let image = UIImage(data: data)
+                                            
+                                            // update the model, so that the information gets cached
+                                            photo.photoImage = image
+                                        }
+                                    }
+                                })
                             }
-                            if let data = data {
-                                // Create the image
-                                let image = UIImage(data: data)
-                                
-                                // update the model, so that the information gets cached
-                                photo.photoImage = image
+                        } else {
+                            print("Error in getting Flickr Images: \(error)")
+                        }
+                        self.saveContext()
+                    }
+                } else if self.flickr.totalPhotos == 0 {
+                    // decrement accuracy and run again
+                    self.flickr.getFlickrImagesForCoordinates(self.coordinates!, getTotal: true, accuracyInt: self.flickr.currentAccuracy, searchtext: searchtext) { success, error in
+                        if success {
+                        // recursive call. Accuracy is decremented in the getFlickrImages.. func
+                            if self.flickr.noPhotosCanBeFound == false {
+                                self.deleteAllPhotos(searchtext)
+                            } else {
+                                print(self.flickr.currentAccuracy)
+                                print("NO PHOTOS CAN BE FOUND, TRY ANOTHER SEARCH")
                             }
                         }
-                    })
+                    }
                 }
-            } else {
-                print("Error in getting Flickr Images: \(error)")
             }
-            self.saveContext()
+        
         }
     }
 

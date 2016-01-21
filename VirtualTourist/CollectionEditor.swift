@@ -110,7 +110,8 @@ class CollectionEditor: UIViewController, MKMapViewDelegate, UICollectionViewDel
     }
     
     @IBAction func bottomButtonTapped(sender: AnyObject) {
-        
+        flickr.noPhotosCanBeFound = false
+        flickr.currentAccuracy = 16 // reset accuracy to the default
         if embeddedCollectionView?.selectedIndexes.count <= 0 {
             
             bottomButton.enabled = false
