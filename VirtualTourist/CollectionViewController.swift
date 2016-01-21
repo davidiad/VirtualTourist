@@ -258,6 +258,8 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
         }
     }
     
+    //MARK:- Collection Editor UI
+    
     func sendInfoToCollectionEditor () {
         if let parentVC = self.parentViewController as? CollectionEditor {
             if selectedIndexes.count > 0 {
@@ -266,19 +268,29 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
                 parentVC.bottomButton.title = "New Collection"
             }
             if numPhotos != nil {
-                parentVC.numPhotosLabel.text = "\(numPhotos!) photos were found"
+                if numPhotos == 1 {
+                    parentVC.numPhotosLabel.text = "One photo was found"
+                } else {
+                    parentVC.numPhotosLabel.text = "\(numPhotos!) photos were found"
+                }
             } else {
                 parentVC.numPhotosLabel.text = "No photos were found."
             }
-//            if photoCounter! <= 0 || numPhotos == 0 {
-//                parentVC.bottomButton.enabled = true
-//                // allow cells to be selected
-//                collectionView?.userInteractionEnabled = true
-//            }
         }
     }
     
-    //TODO: Still allowing a doubling of the photos when button tapped twice quickly
+    func updateNumPhotosLabel () {
+        dispatch_async(dispatch_get_main_queue()) {
+            if let parentVC = self.parentViewController as? CollectionEditor {
+                if self.flickr.noPhotosCanBeFound == false {
+                    parentVC.numPhotosLabel.text = "Widening the search. Please wait..."
+                } else {
+                    parentVC.numPhotosLabel.text = "No photos can be found, please try another search."
+                }
+            }
+        }
+    }
+    
     func enableNewCollectionButton () {
         if let parentVC = self.parentViewController as? CollectionEditor {
             if photoCounter! <= 0 || numPhotos == 0 {
@@ -439,6 +451,7 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
                         self.saveContext()
                     }
                 } else if self.flickr.totalPhotos == 0 {
+                    self.updateNumPhotosLabel()
                     // decrement accuracy and run again
                     self.flickr.getFlickrImagesForCoordinates(self.coordinates!, getTotal: true, accuracyInt: self.flickr.currentAccuracy, searchtext: searchtext) { success, error in
                         if success {
@@ -446,6 +459,7 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
                             if self.flickr.noPhotosCanBeFound == false {
                                 self.deleteAllPhotos(searchtext)
                             } else {
+                                self.updateNumPhotosLabel()
                                 print(self.flickr.currentAccuracy)
                                 print("NO PHOTOS CAN BE FOUND, TRY ANOTHER SEARCH")
                             }
@@ -453,7 +467,6 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
                     }
                 }
             }
-        
         }
     }
 
