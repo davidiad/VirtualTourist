@@ -335,8 +335,6 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
         
         // Disable button while changes are happening to avoid conflict by adding new photos while deletions etc are being processed
         disableInteraction()
-        
-        print("in controllerWillChangeContent")
     }
     
     // The second method may be called multiple times, once for each Photo object that is added, deleted, or changed.

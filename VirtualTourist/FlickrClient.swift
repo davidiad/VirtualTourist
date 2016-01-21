@@ -66,7 +66,7 @@ class FlickrClient: NSObject {
         if searchtext != nil {
             text = "\(searchtext!)"
         }
-        var min_date_upload = {
+        let min_date_upload = {
             makeDate()
         }()
     
@@ -284,6 +284,15 @@ class FlickrClient: NSObject {
     
     // MARK:- Date helper
     func makeDate() -> String {
+        // In order to increase the chance of finding photos if expanding the search due to no photos being found in the first run, extend the date more with each reduction in accuracy
+        // Default accuracy (16) -> default date (12 hours) (or 1 day)
+        // Accuracy 15 -> date 10 days previous
+        
+        // Accuracy 1 -> date 12 years previous, or about 4,000 days
+        // 16 - currentAccuracy -> number from 0 to 15
+        // multiply by 300
+        // add 1
+        let days = (-300 * (16 - currentAccuracy)) + 1
         let userCalendar = NSCalendar.currentCalendar()
         // get the current time/date ( gotten from NSDate() )
         // subtract some time from it (a day? a week? month?)
@@ -291,7 +300,7 @@ class FlickrClient: NSObject {
         
         let tenDaysBeforeNow = userCalendar.dateByAddingUnit(
             [.Day],
-            value: -1000,
+            value: days,
             toDate: NSDate(),
             options: [])!
         
