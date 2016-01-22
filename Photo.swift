@@ -56,7 +56,6 @@ class Photo: NSManagedObject {
 
         let fileManager = NSFileManager.defaultManager()
         let documentsDirectoryPath: String = NSSearchPathForDirectoriesInDomains(NSSearchPathDirectory.DocumentDirectory, NSSearchPathDomainMask.UserDomainMask, true)[0]
-        
         let fullDocsUrl = documentsDirectoryPath + "/" + getFileID()
 
         if fileManager.fileExistsAtPath(fullDocsUrl) {

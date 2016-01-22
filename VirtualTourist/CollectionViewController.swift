@@ -437,6 +437,8 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
             sharedContext.deleteObject(photo)
         }
         
+        saveContext()
+        
         selectedIndexes = [NSIndexPath]()
     }
     
