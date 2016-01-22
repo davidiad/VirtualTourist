@@ -35,7 +35,8 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
     
     // Additional safeguard against rapidly repeated tapping of New Collection button
     var buttonTapAllowed: Bool = true
-
+    // flag to prevent auto-fetching more than once at a time
+    var autoFetchInProgress: Bool = false
     //MARK:- View lifecycle
     
     override func viewDidLoad() {
@@ -51,8 +52,10 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
     }
     
     override func viewDidAppear(animated: Bool) {
+        autoFetchInProgress = false
         if  fetchedResultsController.fetchedObjects?.count == 0 {
             // automatically try to fetch photos with expanded search parameters if there are no photos in the initial fetch
+            autoFetchInProgress = true
             deleteAllPhotos(nil)
         }
     }
@@ -90,6 +93,11 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
         // update the UI elements in the Collection Editor (which this Collection View is embedded in)
         sendInfoToCollectionEditor()
         enableNewCollectionButton()
+        if fetchedResultsController.fetchedObjects?.count == 0 {
+            if autoFetchInProgress == false {
+                deleteAllPhotos(nil)
+            }
+        }
         return numPhotos!
     }
 
@@ -228,17 +236,19 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
     
     // Updates to parent view UI
     func sendInfoToCollectionEditor () {
-        if let parentVC = self.parentViewController as? CollectionEditor {
-            if numPhotos != nil {
-                if numPhotos == 0 {
-                    parentVC.numPhotosLabel.text = "No photos found yet..."
-                } else if numPhotos == 1 {
-                    parentVC.numPhotosLabel.text = "One photo was found"
+        dispatch_async(dispatch_get_main_queue()) {
+            if let parentVC = self.parentViewController as? CollectionEditor {
+                if self.numPhotos != nil {
+                    if self.numPhotos == 0 {
+                        parentVC.numPhotosLabel.text = "No photos found yet..."
+                    } else if self.numPhotos == 1 {
+                        parentVC.numPhotosLabel.text = "One photo was found"
+                    } else {
+                        parentVC.numPhotosLabel.text = "\(self.numPhotos!) photos were found"
+                    }
                 } else {
-                    parentVC.numPhotosLabel.text = "\(numPhotos!) photos were found"
+                    parentVC.numPhotosLabel.text = "No photos were found."
                 }
-            } else {
-                parentVC.numPhotosLabel.text = "No photos were found."
             }
         }
     }
@@ -390,6 +400,7 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
                                     }
                                 })
                             }
+                            self.autoFetchInProgress = false
                         } else {
                             print("Error in getting Flickr Images: \(error)")
                         }
