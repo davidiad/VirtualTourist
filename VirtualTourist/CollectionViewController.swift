@@ -15,7 +15,6 @@ var csize: CGSize = CGSizeMake(100, 100)
 
 class CollectionViewController: UICollectionViewController, NSFetchedResultsControllerDelegate {
     
-    
     let model = VirtualTouristModel.sharedInstance
     let flickr = FlickrClient.sharedInstance
     var coordinates : CLLocationCoordinate2D?
@@ -37,6 +36,8 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
     // Additional safeguard against rapidly repeated tapping of New Collection button
     var buttonTapAllowed: Bool = true
 
+    //MARK:- View lifecycle
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -51,7 +52,7 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
     
     override func viewDidAppear(animated: Bool) {
         if  fetchedResultsController.fetchedObjects?.count == 0 {
-            // automatically try to fetch photos with looser parameters if there are none from the initial fetch
+            // automatically try to fetch photos with expanded search parameters if there are no photos in the initial fetch
             deleteAllPhotos(nil)
         }
     }
@@ -61,7 +62,7 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
         self.collectionView!.frame = CGRectMake(frame.origin.x, frame.origin.y + barSize, frame.size.width, frame.size.height - barSize)
     }
     
-    // MARK: UICollectionViewDelegateFlowLayout
+    // MARK:- UICollectionViewDelegateFlowLayout
     
     func collectionView(collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAtIndexPath indexPath: NSIndexPath) -> CGSize {
         let w = self.collectionView!.frame.size.width
@@ -82,7 +83,6 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
     }
 
     override func collectionView(collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        //numPhotos = currentPin?.photos.count
         numPhotos = fetchedResultsController.fetchedObjects?.count
         photoCounter = numPhotos
         // count how many of the photos have already been downloaded
@@ -205,7 +205,7 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
         }
         
         // Send the updated info to Collection Editor, so it knows what to say
-        sendInfoToCollectionEditor()
+        updateBottomButton()
         
         if cell.alpha < 1.0 {
             cell.alpha = 1.0
@@ -216,22 +216,22 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
     
     //MARK:- Collection Editor UI
     
-    // multi-purpose updates to parent view UI
-    func sendInfoToCollectionEditor () {
+    func updateBottomButton() {
         if let parentVC = self.parentViewController as? CollectionEditor {
             if selectedIndexes.count > 0 {
                 parentVC.bottomButton.title = "Remove Selected Photos"
             } else {
                 parentVC.bottomButton.title = "New Collection"
             }
+        }
+    }
+    
+    // Updates to parent view UI
+    func sendInfoToCollectionEditor () {
+        if let parentVC = self.parentViewController as? CollectionEditor {
             if numPhotos != nil {
                 if numPhotos == 0 {
-                    parentVC.numPhotosLabel.text = "No photos found yet, please wait..."
-                    // fetch a new set of photos?
-                    //TODO: refactor
-//                    print( " in sendInfo")
-//                    deleteAllPhotos(nil)
-//                    return
+                    parentVC.numPhotosLabel.text = "No photos found yet..."
                 } else if numPhotos == 1 {
                     parentVC.numPhotosLabel.text = "One photo was found"
                 } else {
@@ -284,7 +284,7 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
     }()
     
     
-    // MARK: - Fetched Results Controller Delegate
+    // MARK: Fetched Results Controller Delegate
     
     // Whenever changes are made to Core Data the following three methods are invoked. This 1st method is used to create three fresh arrays to record the index paths that will be changed.
     func controllerWillChangeContent(controller: NSFetchedResultsController) {
@@ -348,6 +348,7 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
             }, completion: nil)
     }
     
+    //MARK:- Photo Deletion and New Collection
     func deleteAllPhotos(searchtext: String?) {
         buttonTapAllowed = false
         if fetchedResultsController.fetchedObjects?.count > 0 { // attempt to avoid crash when rapidly tapping

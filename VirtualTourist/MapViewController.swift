@@ -81,7 +81,6 @@ class MapViewController: UIViewController, MKMapViewDelegate {
             // fetch the photo url's for this Pin
             flickr.currentAccuracy = 16 // resets accuracy to the default
             flickr.getFlickrImagesForCoordinates(newCoordinates, getTotal: true, accuracyInt: nil, searchtext: nil) { success, error in
-                print("flickr.totalPhotos: \(self.flickr.totalPhotos)")
                 // We have the total num of photos stored, now fetch a random page
                 self.flickr.getFlickrImagesForCoordinates(newCoordinates, getTotal:  false, accuracyInt: nil, searchtext: nil) { success, error in
                     if success {
@@ -218,7 +217,6 @@ class MapViewController: UIViewController, MKMapViewDelegate {
             if infoArray.count > 0 {
                 return infoArray[0]
             } else {
-                print("No objects in fetchMapInfo request")
                 NSEntityDescription.insertNewObjectForEntityForName("MapViewInfo", inManagedObjectContext: sharedContext) as! MapViewInfo
                 let defaultInfo = makeMapDictionary()
                 return MapViewInfo(dictionary: defaultInfo, context: sharedContext)
