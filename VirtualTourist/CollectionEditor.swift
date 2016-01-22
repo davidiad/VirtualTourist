@@ -122,7 +122,8 @@ class CollectionEditor: UIViewController, MKMapViewDelegate, UICollectionViewDel
                         }
                     }
                 }
-                embeddedCollectionView?.deleteAllPhotos(self.searchbox.text!)
+                embeddedCollectionView?.fetchInProgress = true
+                embeddedCollectionView?.deleteAllPhotosAndDownloadNewCollection(self.searchbox.text!)
             }
         } else {
             embeddedCollectionView?.deleteSelectedPhotos()

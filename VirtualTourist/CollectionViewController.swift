@@ -35,8 +35,8 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
     
     // Additional safeguard against rapidly repeated tapping of New Collection button
     var buttonTapAllowed: Bool = true
-    // flag to prevent auto-fetching more than once at a time
-    var autoFetchInProgress: Bool = false
+    // flag to prevent fetching a new collection more than once at a time
+    var fetchInProgress: Bool = false
     //MARK:- View lifecycle
     
     override func viewDidLoad() {
@@ -52,11 +52,10 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
     }
     
     override func viewDidAppear(animated: Bool) {
-        autoFetchInProgress = false
-        if  fetchedResultsController.fetchedObjects?.count == 0 {
-            // automatically try to fetch photos with expanded search parameters if there are no photos in the initial fetch
-            autoFetchInProgress = true
-            deleteAllPhotos(nil)
+        if fetchInProgress == false && fetchedResultsController.fetchedObjects?.count == 0 {
+            // automatically fetch photos with expanded search parameters if there are no photos in the initial fetch
+            fetchInProgress = true
+            downloadNewCollection(nil)
         }
     }
     
@@ -93,10 +92,9 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
         // update the UI elements in the Collection Editor (which this Collection View is embedded in)
         sendInfoToCollectionEditor()
         enableNewCollectionButton()
-        if fetchedResultsController.fetchedObjects?.count == 0 {
-            if autoFetchInProgress == false {
-                deleteAllPhotos(nil)
-            }
+        if fetchInProgress == false && numPhotos == 0 {
+            fetchInProgress = true
+            downloadNewCollection(nil)
         }
         return numPhotos!
     }
@@ -358,21 +356,10 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
             }, completion: nil)
     }
     
-    //MARK:- Photo Deletion and New Collection
-    func deleteAllPhotos(searchtext: String?) {
-        buttonTapAllowed = false
-        if fetchedResultsController.fetchedObjects?.count > 0 { // attempt to avoid crash when rapidly tapping
-            dispatch_async(dispatch_get_main_queue()) {
-                for photo in self.fetchedResultsController.fetchedObjects as! [Photo] {
-                    if photo.managedObjectContext != nil {
-                        self.sharedContext.deleteObject(photo)
-                    }
-                }
-                self.saveContext()
-            }
-        }
+    //MARK:- Fetch Photos
+    // fetch a new collection of photos
+    func downloadNewCollection(searchtext: String?) {
         
-        // Download a new collection of photos
         flickr.getFlickrImagesForCoordinates(self.coordinates!, getTotal: true, accuracyInt: flickr.currentAccuracy, searchtext: searchtext) { success, error in
             if success {
                 if self.flickr.totalPhotos > 0 {
@@ -400,7 +387,7 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
                                     }
                                 })
                             }
-                            self.autoFetchInProgress = false
+                            self.fetchInProgress = false
                         } else {
                             print("Error in getting Flickr Images: \(error)")
                         }
@@ -411,9 +398,9 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
                     // decrement accuracy and run again
                     self.flickr.getFlickrImagesForCoordinates(self.coordinates!, getTotal: true, accuracyInt: self.flickr.currentAccuracy, searchtext: searchtext) { success, error in
                         if success {
-                        // recursive call. Accuracy is decremented in the getFlickrImages.. func
+                            // recursive call. Accuracy is decremented in the getFlickrImages.. func
                             if self.flickr.noPhotosCanBeFound == false {
-                                self.deleteAllPhotos(searchtext)
+                                self.downloadNewCollection(searchtext)
                             } else {
                                 self.updateNumPhotosLabel()
                                 self.buttonTapAllowed = true
@@ -422,6 +409,21 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
                         }
                     }
                 }
+            }
+        }
+    }
+    
+    //MARK:- Photo Deletion
+    func deleteAllPhotos() {
+        buttonTapAllowed = false
+        if fetchedResultsController.fetchedObjects?.count > 0 { // attempt to avoid crash when rapidly tapping
+            dispatch_async(dispatch_get_main_queue()) {
+                for photo in self.fetchedResultsController.fetchedObjects as! [Photo] {
+                    if photo.managedObjectContext != nil {
+                        self.sharedContext.deleteObject(photo)
+                    }
+                }
+                self.saveContext()
             }
         }
     }
@@ -442,7 +444,13 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
         selectedIndexes = [NSIndexPath]()
     }
     
-    //MARK:- Save Managed Object Context helper function
+    // called from CollectionEditor when New Collection button is tapped
+    func deleteAllPhotosAndDownloadNewCollection(searchtext: String?) {
+        deleteAllPhotos()
+        downloadNewCollection(searchtext)
+    }
+    
+    //MARK:- Save Managed Object Context helper
     func saveContext() {
         dispatch_async(dispatch_get_main_queue()) {
             _ = try? self.sharedContext.save()
