@@ -9,16 +9,7 @@
 import Foundation
 import CoreData
 
-/**
- * The CoreDataStackManager contains the code that was previously living in the 
- * AppDelegate in Lesson 3. Apple puts the code in the AppDelegate in many of their
- * Xcode templates. But they put it in a convenience class like this in sample code
- * like the "Earthquakes" project.
- *
- */
-
-//TODO: rename below
-private let SQLITE_FILE_NAME = "FavoriteActors.sqlite"
+private let SQLITE_FILE_NAME = "VirtualTourist.sqlite"
 
 class CoreDataStackManager {
     
@@ -37,19 +28,15 @@ class CoreDataStackManager {
         return Static.instance
     }
     
-    // MARK: - The Core Data stack. The code has been moved, unaltered, from the AppDelegate.
+    // MARK: - The Core Data stack.
     
     lazy var applicationDocumentsDirectory: NSURL = {
-        
-        print("Instantiating the applicationDocumentsDirectory property")
-        
         let urls = NSFileManager.defaultManager().URLsForDirectory(.DocumentDirectory, inDomains: .UserDomainMask)
         return urls[urls.count-1]
     }()
     
     lazy var managedObjectModel: NSManagedObjectModel = {
-        // The managed object model for the application. This property is not optional. It is a fatal error for the application not to be able to find and load its model.
-        
+        // The managed object model for the application.
         let modelURL = NSBundle.mainBundle().URLForResource("VirtualTourist", withExtension: "momd")!
         return NSManagedObjectModel(contentsOfURL: modelURL)!
     }()
@@ -86,8 +73,6 @@ class CoreDataStackManager {
             
             dict[NSUnderlyingErrorKey] = error as NSError
             let wrappedError = NSError(domain: "YOUR_ERROR_DOMAIN", code: 9999, userInfo: dict)
-            // Replace this with code to handle the error appropriately.
-            // abort() causes the application to generate a crash log and terminate. You should not use this function in a shipping application, although it may be useful during development.
             NSLog("Unresolved error \(wrappedError), \(wrappedError.userInfo)")
             abort()
         }
@@ -111,13 +96,9 @@ class CoreDataStackManager {
             do {
                 try managedObjectContext.save()
             } catch {
-                // Replace this implementation with code to handle the error appropriately.
-                // abort() causes the application to generate a crash log and terminate. You should not use this function in a shipping application, although it may be useful during development.
                 let nserror = error as NSError
                 print("Could not save the Managed Object Context")
                 NSLog("Unresolved error \(nserror), \(nserror.userInfo)")
-                //abort()
-                
             }
         }
     }

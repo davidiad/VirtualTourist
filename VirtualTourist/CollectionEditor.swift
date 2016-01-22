@@ -12,6 +12,7 @@ import CoreData
 
 class CollectionEditor: UIViewController, MKMapViewDelegate, UICollectionViewDelegate, UITextFieldDelegate {
 
+    //MARK:- Vars
     let flickr = FlickrClient.sharedInstance
     let model = VirtualTouristModel.sharedInstance
     
@@ -23,40 +24,36 @@ class CollectionEditor: UIViewController, MKMapViewDelegate, UICollectionViewDel
     
     var embeddedCollectionView: CollectionViewController?
     
-    var testy: Int = 0
     var keyboardHeight: CGFloat?
 
+    //MARK:- Outlets
     @IBOutlet weak var mapView: MKMapView!
-    //@IBOutlet weak var coordinatesLabel: UILabel!
     @IBOutlet weak var bottomButton: UIBarButtonItem!
     @IBOutlet weak var searchbox: UITextField!
     @IBOutlet weak var numPhotosLabel: UILabel!
     
+    //MARK:- View lifecycle
     override func viewDidLoad() {
         
         super.viewDidLoad()
         searchbox.delegate = self
         mapView.delegate = self
         let span = MKCoordinateSpanMake(0.25, 0.25)
-        //dispatch_async(dispatch_get_main_queue()) {
-            if self.coordinates != nil {
-                self.mapView.centerCoordinate = self.coordinates!
-                let region = MKCoordinateRegionMake(self.coordinates!, span)
-                self.mapView.region = region
-                self.placePin()
-                
-            } else {
-                print("no coords in CollectionEditor")
-            }
-        //}
+        if self.coordinates != nil {
+            self.mapView.centerCoordinate = self.coordinates!
+            let region = MKCoordinateRegionMake(self.coordinates!, span)
+            self.mapView.region = region
+            self.placePin()
+            
+        } else {
+            print("no coords in CollectionEditor")
+        }
     }
     
     override func viewDidAppear(animated: Bool) {
         if currentPin != nil {
-            print("IN CEDITOR: \(currentPin)")
             if currentPin?.search != nil {
                 if let searchtext = currentPin?.search?.searchString {
-                    print("SEARCH FOR: \(searchtext)")
                     searchbox.text = searchtext
                 } else {
                     print("NO SEARCHTEXT IN CEDITOR")
@@ -64,16 +61,11 @@ class CollectionEditor: UIViewController, MKMapViewDelegate, UICollectionViewDel
             }
         }
     }
-
-    override func didReceiveMemoryWarning() {
-        super.didReceiveMemoryWarning()
-        // Dispose of any resources that can be recreated.
-    }
     
+    //MARK:- Map View
     func placePin() {
         let annotation = MKPointAnnotation()
         annotation.coordinate = coordinates!
-        //annotation.title = String(newCoordinates)// as String
         mapView.addAnnotation(annotation)
     }
     
@@ -97,7 +89,6 @@ class CollectionEditor: UIViewController, MKMapViewDelegate, UICollectionViewDel
     
     // MARK: - Navigation
     
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
     override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
         updateBottomButton()
         if let collectionViewController = segue.destinationViewController as? CollectionViewController {

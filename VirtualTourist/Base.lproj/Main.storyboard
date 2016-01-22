@@ -13,10 +13,7 @@
                         <rect key="frame" x="0.0" y="0.0" width="600" height="600"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                     </mapView>
-                    <navigationItem key="navigationItem" title="Map" id="DSa-gu-VZN">
-                        <barButtonItem key="leftBarButtonItem" title="Item" id="rLR-e0-Sei"/>
-                        <barButtonItem key="rightBarButtonItem" title="Edit" id="8Y3-Wu-qUH"/>
-                    </navigationItem>
+                    <navigationItem key="navigationItem" title="Map" id="DSa-gu-VZN"/>
                     <connections>
                         <outlet property="map" destination="8eI-La-8ON" id="vpr-WG-ZUH"/>
                         <segue destination="B5l-87-boa" kind="show" identifier="fromMap" id="ueA-ej-GXb"/>
@@ -63,14 +60,14 @@
                                     <barButtonItem style="plain" systemItem="flexibleSpace" id="BNl-gu-QSz"/>
                                 </items>
                             </toolbar>
-                            <textField opaque="NO" clipsSubviews="YES" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="bezel" placeholder="Enter optional search terms here" textAlignment="center" minimumFontSize="17" clearButtonMode="whileEditing" translatesAutoresizingMaskIntoConstraints="NO" id="0UK-De-HIg">
+                            <textField opaque="NO" clipsSubviews="YES" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="bezel" placeholder="Enter search terms here, then tap New Collection" textAlignment="center" minimumFontSize="12" clearButtonMode="whileEditing" translatesAutoresizingMaskIntoConstraints="NO" id="0UK-De-HIg">
                                 <rect key="frame" x="0.0" y="64" width="600" height="22"/>
                                 <color key="textColor" red="1" green="0.160998218" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="14"/>
                                 <textInputTraits key="textInputTraits"/>
                             </textField>
-                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="The number of photos found was: " textAlignment="center" lineBreakMode="middleTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="b9H-h2-PuR">
-                                <rect key="frame" x="169" y="248" width="262.5" height="20.5"/>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Looking for photos, please wait..." textAlignment="center" lineBreakMode="middleTruncation" baselineAdjustment="alignBaselines" minimumFontSize="9" adjustsLetterSpacingToFitWidth="YES" translatesAutoresizingMaskIntoConstraints="NO" id="b9H-h2-PuR">
+                                <rect key="frame" x="174.5" y="248.5" width="252" height="20.5"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                 <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
                                 <nil key="highlightedColor"/>

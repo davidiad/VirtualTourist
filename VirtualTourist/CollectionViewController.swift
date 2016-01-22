@@ -27,7 +27,7 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
     // The selected indexes array keeps all of the indexPaths for cells that are "selected". The array is
     // used inside cellForItemAtIndexPath to lower the alpha of selected cells.
     var selectedIndexes = [NSIndexPath]()
-    // Keep the changes. We will keep track of insertions, deletions, and updates.
+    // Keep the changes. We keep track of insertions, deletions, and updates.
     var insertedIndexPaths: [NSIndexPath]!
     var deletedIndexPaths: [NSIndexPath]!
     var updatedIndexPaths: [NSIndexPath]!
@@ -82,9 +82,12 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
     }
 
     override func collectionView(collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        numPhotos = currentPin?.photos.count
+        //numPhotos = currentPin?.photos.count
+        numPhotos = fetchedResultsController.fetchedObjects?.count
         photoCounter = numPhotos
+        // count how many of the photos have already been downloaded
         countDownloaded()
+        // update the UI elements in the Collection Editor (which this Collection View is embedded in)
         sendInfoToCollectionEditor()
         enableNewCollectionButton()
         return numPhotos!
@@ -213,6 +216,7 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
     
     //MARK:- Collection Editor UI
     
+    // multi-purpose updates to parent view UI
     func sendInfoToCollectionEditor () {
         if let parentVC = self.parentViewController as? CollectionEditor {
             if selectedIndexes.count > 0 {
@@ -221,7 +225,14 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
                 parentVC.bottomButton.title = "New Collection"
             }
             if numPhotos != nil {
-                if numPhotos == 1 {
+                if numPhotos == 0 {
+                    parentVC.numPhotosLabel.text = "No photos found yet, please wait..."
+                    // fetch a new set of photos?
+                    //TODO: refactor
+//                    print( " in sendInfo")
+//                    deleteAllPhotos(nil)
+//                    return
+                } else if numPhotos == 1 {
                     parentVC.numPhotosLabel.text = "One photo was found"
                 } else {
                     parentVC.numPhotosLabel.text = "\(numPhotos!) photos were found"
@@ -236,7 +247,7 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
         dispatch_async(dispatch_get_main_queue()) {
             if let parentVC = self.parentViewController as? CollectionEditor {
                 if self.flickr.noPhotosCanBeFound == false {
-                    parentVC.numPhotosLabel.text = "Widening the search. Please wait..."
+                    parentVC.numPhotosLabel.text = "Expanding the search. Please wait..."
                 } else {
                     parentVC.numPhotosLabel.text = "No photos can be found, please try another search."
                 }
@@ -323,6 +334,9 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
             }
             
                 for indexPath in self.deletedIndexPaths {
+                    if let parentVC = self.parentViewController as? CollectionEditor {
+                        parentVC.numPhotosLabel.text = "Removed \(self.deletedIndexPaths.count) photos"
+                    }
                     self.collectionView!.deleteItemsAtIndexPaths([indexPath])
                 }
             if self.buttonTapAllowed {
@@ -414,7 +428,7 @@ class CollectionViewController: UICollectionViewController, NSFetchedResultsCont
         selectedIndexes = [NSIndexPath]()
     }
     
-    //MARK:- Save Managed Object Context
+    //MARK:- Save Managed Object Context helper function
     func saveContext() {
         dispatch_async(dispatch_get_main_queue()) {
             _ = try? self.sharedContext.save()

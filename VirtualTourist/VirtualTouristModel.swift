@@ -7,10 +7,9 @@
 //
 
 import Foundation
-//import UIKit
 
 class VirtualTouristModel {
-    static let sharedInstance = VirtualTouristModel()
+    static let sharedInstance = VirtualTouristModel() // singleton
     var photoArray: [String]?
     
     //This prevents others from using the default '()' initializer for this class.

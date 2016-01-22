@@ -55,6 +55,7 @@ class FlickrClient: NSObject {
             makeDate()
         }()
         let radius = {
+            // As accuracy is decreased, calculateRadius() increases the search radius as well
             calculateRadius()
         }()
 

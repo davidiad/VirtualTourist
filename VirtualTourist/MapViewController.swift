@@ -23,6 +23,8 @@ class MapViewController: UIViewController, MKMapViewDelegate {
     
     @IBOutlet weak var map: MKMapView!
     
+    //MARK:- View lifecycle
+    
     override func viewDidLoad() {
         flickr.makeDate()
         map.delegate = self
@@ -42,10 +44,12 @@ class MapViewController: UIViewController, MKMapViewDelegate {
         displayPins(pinArray)
     }
     
+    //MARK:- Map view
+    
     func addAnnotation(gestureRecognizer:UIGestureRecognizer) {
         let touchPoint = gestureRecognizer.locationInView(map)
         let newCoordinates = map.convertPoint(touchPoint, toCoordinateFromView: map)
-        //TODO: convert to switch statement. Not necessary, but cleaner code
+
         if gestureRecognizer.state == UIGestureRecognizerState.Began { // allows only 1 pin per touch
 
             // Add a new Pin object to data store
@@ -59,22 +63,26 @@ class MapViewController: UIViewController, MKMapViewDelegate {
             map.addAnnotation(currentPin!)
             
             // in order to get a permanent ID, we can save the Pin into the context
-            CoreDataStackManager.sharedInstance().saveContext()
-            currentPin?.title = String(currentPin!.objectID.URIRepresentation())
-            
+            // with a permanent ID, we can find that pin later
+            dispatch_async(dispatch_get_main_queue()) {
+                _ = try? self.sharedContext.save()
+                self.currentPin?.title = String(self.currentPin!.objectID.URIRepresentation())
+            }
+        
+            // Allows user to move the pin after the drop but before letting go
         } else if gestureRecognizer.state == UIGestureRecognizerState.Changed {
             // in change state
-            //to use KVO
+            // to use KVO
             currentPin?.willChangeValueForKey("coordinate")
             // change coordinate to new location
             currentPin?.coordinate = newCoordinates
             currentPin?.didChangeValueForKey("coordinate")
         } else if gestureRecognizer.state == UIGestureRecognizerState.Ended {
             // fetch the photo url's for this Pin
-            // Run the fetch to get the total repeatedly, reducing accuracy each time, until at least 1 photo is found
             flickr.currentAccuracy = 16 // resets accuracy to the default
             flickr.getFlickrImagesForCoordinates(newCoordinates, getTotal: true, accuracyInt: nil, searchtext: nil) { success, error in
                 print("flickr.totalPhotos: \(self.flickr.totalPhotos)")
+                // We have the total num of photos stored, now fetch a random page
                 self.flickr.getFlickrImagesForCoordinates(newCoordinates, getTotal:  false, accuracyInt: nil, searchtext: nil) { success, error in
                     if success {
                         for url in self.model.photoArray! {
@@ -101,14 +109,13 @@ class MapViewController: UIViewController, MKMapViewDelegate {
                                 
                             } )
                         }
+                        self.saveContext()
                     } else {
                         print("Error in getting Flickr Images: \(error)")
                     }
                 }
 
             }
-            
-            CoreDataStackManager.sharedInstance().saveContext()
         }
     }
     
@@ -130,9 +137,6 @@ class MapViewController: UIViewController, MKMapViewDelegate {
     
     // MARK: - MKMapViewDelegate
     
-    // Here we create a view with a "right callout accessory view". You might choose to look into other
-    // decoration alternatives. Notice the similarity between this method and the cellForRowAtIndexPath
-    // method in TableViewDataSource.
     func mapView(mapView: MKMapView, viewForAnnotation annotation: MKAnnotation) -> MKAnnotationView? {
         
         let reuseId = "pin"
@@ -148,7 +152,6 @@ class MapViewController: UIViewController, MKMapViewDelegate {
         }
         else {
             pinView!.annotation = annotation
-            //TODO: make pins a consistent color
             pinView?.pinTintColor = UIColor.blueColor()
         }
         return pinView
@@ -163,7 +166,7 @@ class MapViewController: UIViewController, MKMapViewDelegate {
     // Use this "select" function to tap the pin
     func mapView(mapView: MKMapView, didSelectAnnotationView view: MKAnnotationView) {
         saveMapInfo()
-        // Not sure why, but unless the annotation is deselected, it is not selectable if returning from the collection view
+        // Unless the annotation is deselected, it is not selectable when returning from the collection view
         mapView.deselectAnnotation(view.annotation, animated: false)
 
         self.performSegueWithIdentifier("fromMap", sender: view.annotation)
@@ -195,7 +198,7 @@ class MapViewController: UIViewController, MKMapViewDelegate {
         }
     }
     
-    //MARK:-Core Data Functions
+    //MARK:- Core Data Functions
     
     func fetchPins() -> [Pin] {
         var pinArray = [Pin]()
@@ -240,7 +243,7 @@ class MapViewController: UIViewController, MKMapViewDelegate {
         mapInfo.latDelta = NSNumber(double: map.region.span.latitudeDelta)
         mapInfo.lonDelta = NSNumber(double: map.region.span.longitudeDelta)
         
-        CoreDataStackManager.sharedInstance().saveContext()
+        saveContext()
     }
     
     func deleteMapInfo() {
@@ -266,5 +269,12 @@ class MapViewController: UIViewController, MKMapViewDelegate {
         ]
         
         return mapDictionary
+    }
+    
+    //MARK:- Save Managed Object Context helper function
+    func saveContext() {
+        dispatch_async(dispatch_get_main_queue()) {
+            _ = try? self.sharedContext.save()
+        }
     }
 }
