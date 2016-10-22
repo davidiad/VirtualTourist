@@ -28,7 +28,7 @@ class MapViewController: UIViewController, MKMapViewDelegate {
     override func viewDidLoad() {
         flickr.makeDate()
         map.delegate = self
-        let longpress = UILongPressGestureRecognizer(target: self, action: "addAnnotation:")
+        let longpress = UILongPressGestureRecognizer(target: self, action: #selector(MapViewController.addAnnotation(_:)))
         longpress.minimumPressDuration = 0.7
         map.addGestureRecognizer(longpress)
     }
